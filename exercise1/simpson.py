@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def simpson(N, a, b, func):
@@ -18,7 +19,7 @@ def simpson(N, a, b, func):
         else:
             single_area = h / 3 * (func(slice[0]) + 4 * func(slice[1]) + func(slice[2]))
         integral += single_area
-    return integral
+    return integral, h
 
 
 def make_slices(n, points):
@@ -32,8 +33,26 @@ def make_slices(n, points):
     return slices
 
 
+def plot_diviation(simp_result, analytical, h):
+    diviation = []
+    for result in simp_result:
+        diviation += [np.abs(analytical - result)]
+
+    plt.plot(np.log(h), np.log(diviation))
+    plt.savefig("simpson.png")
+
+
 function = np.sin
+int_list = []
+h_list = []
 a = 0
 b = np.pi / 2
-integral = simpson(100, a, b, function)
-print(integral)
+n = 100
+
+for i in range(3, n):
+    integral, h = simpson(i, a, b, function)
+    h_list.append(h)
+    int_list.append(integral)
+plot_diviation(int_list, 1, h_list)
+
+print(integral, h)
