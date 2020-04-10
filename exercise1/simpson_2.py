@@ -67,9 +67,9 @@ b = np.pi / 2
 function = np.sin
 analytic = 1
 
-h_range = 50000
+h_range = 10000
 for i in range(3, h_range):
-    simp_result, h = simpson(a, b, i, np.sin)
+    simp_result, h = simpson(a, b, 5 * i, function)
     e = theoretical_error(0, np.pi / 2, h, 1)
     data.append(np.abs(simp_result - analytic))
     hs.append(h)
