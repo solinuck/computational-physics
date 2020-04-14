@@ -5,8 +5,15 @@ import matplotlib.pyplot as plt
 
 
 def romberg(a, b, nmax, func):
+    """
+    Romberg integration.
+    Arguments:
+    a, b: Integration interval
+    nmax: Number of slices
+    func: Function to integrate
+    """
     R = np.zeros((nmax, nmax), float)
-    for n in range(0, nmax):
+    for n in range(0, nmax): # calculate terms iteratively
         N = 2 ** n
         R[n, 0] = trapezoidal(a, b, N, func)
         for j in range(0, n):
@@ -15,8 +22,11 @@ def romberg(a, b, nmax, func):
 
 
 def trapezoidal(a, b, N, func):
+    """
+    trapezoidal area calculation.
+    """
     x, h = np.linspace(a, b, N + 1, retstep=True)
-    function_values = func(x)
+    function_values = func(x) # generate array of sampled function values
     if function_values[1:N].size > 0:
         s = np.sum(function_values[1:N])
     else:
@@ -51,7 +61,7 @@ result_3, R3 = romberg(0, 1, n, f3)
 # print(result_2, R2)
 # print(result_3, R3)
 
-
+# calculate difference to analytical results
 R1_ii_diff = np.abs(np.array([R1[i, i] for i in range(n)]) - analytic1)
 R2_ii_diff = np.abs(np.array([R2[i, i] for i in range(n)]) - analytic2)
 R3_ii_diff = np.abs(np.array([R3[i, i] for i in range(n)]) - analytic3)
