@@ -54,9 +54,10 @@ def euler_cromer(time_steps, tau, x0, v0 = 0, k = 1, m = 1):
     E[-1] = 0.5 * (m * v[-1]**2  + k * x[-1]**2)
     return x, E
 
-x, E = harmonic_verlet(1000, 0.1, 10)
+x, E = euler_cromer(1000, 0.1, 10)
 plt.plot(x, label="amplitude")
 plt.plot(E, label="total energy")
+plt.legend()
 plt.show()
 
 '''
