@@ -14,7 +14,7 @@ def simpson(a, b, N, func):
 
     """
     x, h = np.linspace(a, b, N, retstep=True)
-    function_values = func(x) # generate an array of function values
+    function_values = func(x)  # generate an array of function values
     integral = simpson_rule(h, function_values)
     return integral, h
 
@@ -31,7 +31,9 @@ def simpson_rule(h, function_values):
             * (5 * function_values[-1] + 8 * function_values[-2] - function_values[-3])
             / 12
         )
-        rest = simpson_rule(h, function_values[:-1:])  # recursive calculation of the rest of the array
+        rest = simpson_rule(
+            h, function_values[:-1:]
+        )  # recursive calculation of the rest of the array
         return first_term + rest
     else:
         # odd length
@@ -40,7 +42,9 @@ def simpson_rule(h, function_values):
             * (
                 function_values[0]
                 + function_values[-1]
-                + np.sum(4 * function_values[1:-1:2]) # formula from the script with some fancy numpy indexing
+                + np.sum(
+                    4 * function_values[1:-1:2]
+                )  # formula from the script with some fancy numpy indexing
                 + np.sum(2 * function_values[2:-2:2])
             )
             / 3
@@ -57,7 +61,9 @@ def is_even(array):
         return False
 
 
-def theoretical_error(a, b, h, f): # formula from the script, we assumed zeta to produce the maximal value.
+def theoretical_error(
+    a, b, h, f
+):  # formula from the script, we assumed zeta to produce the maximal value.
     return (h ** 4) * f * (b - a) / 180
 
 
@@ -72,11 +78,11 @@ analytic = 1
 
 h_range = 10000
 for i in range(3, h_range):
-    simp_result, h = simpson(a, b, 5 * i, function) # iterate over different slicings
+    simp_result, h = simpson(a, b, 5 * i, function)  # iterate over different slicings
     e = theoretical_error(0, np.pi / 2, h, 1)
     data.append(np.abs(simp_result - analytic))
     hs.append(h)
-    es.append(e) # save data to arrays for plotting
+    es.append(e)  # save data to arrays for plotting
     if i % 1000 == 0:
         perc = i / h_range * 100
         print(f"{perc}%")
@@ -86,4 +92,4 @@ plt.loglog(hs, es, label="Theoretical Error")
 plt.legend()
 plt.xlabel("h")
 plt.ylabel("difference")
-plt.savefig("simpson_2.png")
+plt.savefig("simpson.png")

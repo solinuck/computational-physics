@@ -13,7 +13,7 @@ def romberg(a, b, nmax, func):
     func: Function to integrate
     """
     R = np.zeros((nmax, nmax), float)
-    for n in range(0, nmax): # calculate terms iteratively
+    for n in range(0, nmax):  # calculate terms iteratively
         N = 2 ** n
         R[n, 0] = trapezoidal(a, b, N, func)
         for j in range(0, n):
@@ -26,7 +26,7 @@ def trapezoidal(a, b, N, func):
     trapezoidal area calculation.
     """
     x, h = np.linspace(a, b, N + 1, retstep=True)
-    function_values = func(x) # generate array of sampled function values
+    function_values = func(x)  # generate array of sampled function values
     if function_values[1:N].size > 0:
         s = np.sum(function_values[1:N])
     else:
@@ -51,7 +51,7 @@ analytic1 = np.exp(1) - 1
 analytic2 = 3 * np.pi / 4
 analytic3 = 2 / 3
 
-n = 20
+n = 30
 
 result_1, R1 = romberg(0, 1, n, f1)
 result_2, R2 = romberg(0, 2 * np.pi, n, f2)
