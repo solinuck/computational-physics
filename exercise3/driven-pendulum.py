@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+from scipy.fftpack import fftshift
+import scipy.signal as signal
 
 def runge_kutta4(N, tau, x0, v0, q):
     x = np.zeros(N)
@@ -48,13 +49,14 @@ x2, v2 = runge_kutta4(n, tau, x0, v0, q)
 q = 1.2
 x3, v3 = runge_kutta4(n, tau, x0, v0, q)
 
-
+'''
 plt.plot(np.linspace(0, tau * n, n), x1, label="q=0.5")
 plt.plot(np.linspace(0, tau * n, n), x2, label="q=0.9")
 plt.plot(np.linspace(0, tau * n, n), x3, label="q=1.2")
 
-plt.savefig("trajectory.png")
+
 plt.legend()
+plt.savefig("trajectory.png")
 plt.close()
 
 plt.plot(x1, v1, label="q=0.5")
@@ -62,3 +64,18 @@ plt.plot(x2, v2, label="q=0.9")
 plt.plot(x3, v3, label="q=1.2")
 plt.savefig("phase_space.png")
 plt.close()
+'''
+print(x1.size)
+f1 = fftshift(x1)
+print(f1.argmax()-n/2)
+ff = np.abs(f1)
+ff2 = ff**2
+
+
+nu_0 = omega/(np.pi*2)
+
+P,Pxx_den  = signal.periodogram(x1)
+plt.plot(Pxx_den)
+
+plt.xlim(0, 6*omega)
+plt.show()
