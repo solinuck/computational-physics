@@ -33,21 +33,27 @@ def get_T(x, tau):
     return np.mean(Ts)
 
 
-time_steps = 1000000
-tau = 0.0001
+time_steps = 10000
+tau = 0.01
+l = 10
 
 x_maxs = np.linspace(0.5, np.pi - 0.1, 20)
 Ts = []
 for x_max in x_maxs:
-    x, T = pendulum(time_steps, tau, x_max, l=10)
+    x, T = pendulum(time_steps, tau, x_max, l=l)
     plt.plot(np.linspace(0, time_steps * tau, time_steps), x)
     Ts.append(T)
 
 plt.savefig("ideal_pendulum.png")
 plt.close()
 
+T_0 = 2 * np.pi * np.sqrt(l / 9.81)
+
 plt.plot(x_maxs, Ts)
+plt.hlines(T_0, 0.5, np.pi - 0.1)
 plt.xlabel(r"$x_{max}$")
 plt.ylabel("T")
+plt.text(1.5, 10, r"$T(x_{max})$ verlet method")
+plt.text(2.2, 6.8, "small angle approximation")
 plt.savefig("T_over_x_pendulum.png")
 plt.close()
