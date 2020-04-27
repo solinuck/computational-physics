@@ -13,9 +13,12 @@ def runge_kutta4(N, tau, x0, v0, q):
 
     for n in range(N - 1):
         k1 = tau * v[n]
-        k1_prim = tau * a[n]
+        #k1_prim = tau * a[n]
+        k1_prim = tau * acc(x[n], v[n], n, q)
+
         k2 = tau * (v[n] + k1_prim / 2)
         k2_prim = tau * acc(x[n] + k1 / 2, v[n] + k1_prim / 2, n + tau / 2, q)
+
         k3 = tau * (v[n] + k2_prim / 2)
         k3_prim = tau * acc(x[n] + k2 / 2, v[n] + k2_prim / 2, n + tau / 2, q)
         k4 = tau * (v[n] + k3_prim)
@@ -49,7 +52,7 @@ x2, v2 = runge_kutta4(n, tau, x0, v0, q)
 q = 1.2
 x3, v3 = runge_kutta4(n, tau, x0, v0, q)
 
-'''
+
 plt.plot(np.linspace(0, tau * n, n), x1, label="q=0.5")
 plt.plot(np.linspace(0, tau * n, n), x2, label="q=0.9")
 plt.plot(np.linspace(0, tau * n, n), x3, label="q=1.2")
@@ -64,18 +67,18 @@ plt.plot(x2, v2, label="q=0.9")
 plt.plot(x3, v3, label="q=1.2")
 plt.savefig("phase_space.png")
 plt.close()
-'''
-print(x1.size)
-f1 = fftshift(x1)
-print(f1.argmax()-n/2)
-ff = np.abs(f1)
-ff2 = ff**2
 
 
 nu_0 = omega/(np.pi*2)
 
-P,Pxx_den  = signal.periodogram(x1)
-plt.plot(Pxx_den)
+P1, Pxx_den1  = signal.periodogram(x1, scaling="spectrum")
+plt.plot(P1, Pxx_den1, label="q=0.5", linestyle = "dashdot", alpha=0.3, c = "grey")
+P2, Pxx_den2  = signal.periodogram(x2, scaling="spectrum")
+plt.plot(P2, Pxx_den2, label="q=0.9", linestyle = "dotted", alpha=0.3, c = "blue")
+P3, Pxx_den3  = signal.periodogram(x3, scaling="spectrum")
+plt.plot(P3, Pxx_den3, label="q=1.2", linestyle = "dashed", alpha=0.3, c = "green")
 
-plt.xlim(0, 6*omega)
+
+plt.xlim(0, 6*nu_0)
+plt.axvline(x = nu_0, alpha = 0.3)
 plt.show()
