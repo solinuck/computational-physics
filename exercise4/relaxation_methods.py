@@ -57,6 +57,26 @@ def gauss_seidel(grid, threshold):
     return new_grid, phi_100, iter
 
 
+def sor(grid, threshold):
+    nx = grid.shape[0]
+    ny = grid.shape[1]
+
+    new_grid = fill_boundary(grid)
+    old_grid = new_grid.copy()
+
+    iter = 0
+    while np.linalg.norm(new_grid - old_grid) > threshold or iter == 0:
+        iter += 1
+
+        from IPython import embed
+
+        embed()
+        break
+
+def select_checkerboard():
+    mask =
+
+
 def fill_boundary(grid):
     nx = grid.shape[0]
     ny = grid.shape[1]
@@ -89,12 +109,13 @@ def plot3D(phi, savename, nx=81, ny=81):
     plt.close()
 
 
-nx = 81
-ny = 81
+nx = 7
+ny = 7
 eps = 10e-5
 
 grid = np.zeros((nx, ny))
 
+sor(grid, eps)
 jacobi_final, jacobi_100, iter_jacobi = jacobi(grid, eps)
 # seidel_final, seidel_100, iter_seidel = gauss_seidel(grid, eps)
 
