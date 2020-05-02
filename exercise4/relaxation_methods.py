@@ -64,42 +64,39 @@ def sor(grid, threshold):
     new_grid = fill_boundary(grid)
     old_grid = new_grid.copy()
 
-    rho_GS = 1 - np.pi ** 2 / nx
+    white = checkerboard((nx - 2, ny - 2)) == 1
+    black = np.logical_not(white)
 
+    rho_j = np.cos(np.pi / nx)
+    rho_gs = rho_j ** 2
     iter = 0
+    omega = 1
     while np.amax(new_grid - old_grid) > threshold or iter == 0:
-        new_inner_grid = new_grid[1:-1, 1:-1]
 
         iter += 1
-        white = checkerboard((nx - 2, ny - 2)) == 1
-        black = np.logical_not(white)
-        # white = inner_grid[mask]
-        # black = inner_grid[not_mask]
+        old_grid = new_grid.copy()
 
-        grid[0:-1:2, 0:-1:2]
+        new_grid[1:-1, 1:-1][black] = old_grid[1:-1, 1:-1][black] * (
+            1 - omega
+        ) + omega * (convolve(old_grid, checkerboard((3, 3)))[1:-1, 1:-1][black] / 4)
 
-        new_grid[1:-1, 1:-1] += (
-            (old_grid[1:-1, 1:-1] * black) * (1 - omega) + omega * (convolve(old_grid, checkerboard((3,3)))[1:-1, 1:-1] * black)
-        )
+        new_grid[1:-1, 1:-1][white] = new_grid[1:-1, 1:-1][white] * (
+            1 - omega
+        ) + omega * (convolve(new_grid, checkerboard((3, 3)))[1:-1, 1:-1][white] / 4)
 
-        omega = foo
-        new_grid[1:-1, 1:-1] = (
-            old_grid[1:-1, 1:-1] +  * (1 - omega) + omega * new_inner_grid[black]
-        )
+        if iter == 1:
+            omega = 1 / (1 - rho_gs / 2)
+        else:
+            omega = omega_update(omega, rho_gs)
 
-        grid[mask] = convolve()
+        if iter == 100:
+            sor_100 = new_grid.copy()
 
-
-
-        from IPython import embed
-
-        embed()
-
-        break
+    return new_grid, sor_100, iter
 
 
-# def select_checkerboard():
-#     mask =
+def omega_update(omega, rho_GS):
+    return 1 / (1 - rho_GS * omega / 4)
 
 
 def fill_boundary(grid):
@@ -134,13 +131,16 @@ def plot3D(phi, savename, nx=81, ny=81):
     plt.close()
 
 
-nx = 4
-ny = 4
+nx = 81
+ny = 81
 eps = 10e-5
 
 grid = np.zeros((nx, ny))
 
-sor(grid, eps)
+sor_final, sor_100, iter_sor = sor(grid, eps)
+from IPython import embed
+
+embed()
 # jacobi_final, jacobi_100, iter_jacobi = jacobi(grid, eps)
 # seidel_final, seidel_100, iter_seidel = gauss_seidel(grid, eps)
 #
@@ -148,6 +148,8 @@ sor(grid, eps)
 # plot3D(jacobi_final, "jacobi_convolve_final")
 # plot3D(seidel_100, "seidel_100")
 # plot3D(seidel_final, "seidel_final")
+plot3D(sor_100, "sor_100")
+plot3D(sor_final, "sor_final")
 
 from IPython import embed
 
