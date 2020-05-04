@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# from scipy.fftpack import fftshift
 import scipy.signal as signal
 
 
@@ -11,7 +10,7 @@ def runge_kutta4(N, tau, x0, v0, q):
     v = np.zeros(N)
     v[0] = v0
 
-    for idx, t in enumerate(np.linspace(0, tau * N, N)[:-1]):
+    for idx, t in enumerate(np.linspace(0, tau * N, N)[:-1]): # runge kutta method from script
         k1 = tau * v[idx]
         k1_prim = tau * a(x[idx], v[idx], t, q)
 
@@ -33,7 +32,7 @@ def runge_kutta4(N, tau, x0, v0, q):
     return x, v
 
 
-def a(x, v, t, q, k=1, gamma=0.5, omega=2 / 3):
+def a(x, v, t, q, k=1, gamma=0.5, omega=2 / 3): # acceleration from task
     return -k * np.sin(x) - gamma * v + q * np.sin(omega * t)
 
 
@@ -79,14 +78,23 @@ plot(x3, v3, q3, "x", "v", "./plots/phase/{}".format(q3))
 
 nu_0 = omega / (np.pi * 2)
 
-P1, Pxx_den1 = signal.periodogram(x1, scaling="spectrum")
-plt.plot(P1, Pxx_den1, label="q=0.5", linestyle="dashdot", alpha=0.3, c="grey")
-P2, Pxx_den2 = signal.periodogram(x2, scaling="spectrum")
-plt.plot(P2, Pxx_den2, label="q=0.9", linestyle="dotted", alpha=0.3, c="blue")
-P3, Pxx_den3 = signal.periodogram(x3, scaling="spectrum")
-plt.plot(P3, Pxx_den3, label="q=1.2", linestyle="dashed", alpha=0.3, c="green")
+P1, Pxx_den1 = signal.periodogram(x1, 1/tau, scaling="spectrum") # determine power spectrum with 1/tau sampling rate for x1
+plt.figure()
+plt.semilogy(P1, np.sqrt(Pxx_den1), label="0.5")
+plt.xlabel("Frequency")
+plt.ylabel("Power")
 
+
+P2, Pxx_den2 = signal.periodogram(x2, 1/tau, scaling="spectrum")
+plt.semilogy(P2, np.sqrt(Pxx_den2), label="0.9")
+
+P3, Pxx_den3 = signal.periodogram(x3, 1/tau, scaling="spectrum")
+plt.semilogy(P3, np.sqrt(Pxx_den3), label="1.2")
+
+plt.legend()
 
 plt.xlim(0, 6 * nu_0)
-plt.axvline(x=nu_0, alpha=0.3)
-plt.savefig("task3.png")
+for i in range(6):
+    plt.axvline(x=nu_0*i, alpha=0.3)
+plt.savefig("plots/task3.png")
+plt.show()
