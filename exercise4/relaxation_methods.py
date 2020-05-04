@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import convolve
 
 
-# from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 
 
@@ -72,23 +72,23 @@ def sor(grid, threshold):
     iter = 0
     omega = 1
     while np.amax(new_grid - old_grid) > threshold or iter == 0:
-
         iter += 1
+
         old_grid = new_grid.copy()
 
         new_grid[1:-1, 1:-1][black] = old_grid[1:-1, 1:-1][black] * (
             1 - omega
         ) + omega * (convolve(old_grid, checkerboard((3, 3)))[1:-1, 1:-1][black] / 4)
 
+        if iter == 1:
+            omega = 1/(1 - rho_gs / 2)
+        else:
+            omega = omega_update(omega, rho_gs)
         new_grid[1:-1, 1:-1][white] = new_grid[1:-1, 1:-1][white] * (
             1 - omega
         ) + omega * (convolve(new_grid, checkerboard((3, 3)))[1:-1, 1:-1][white] / 4)
 
-        if iter == 1:
-            omega = 1 / (1 - rho_gs / 2)
-        else:
-            omega = omega_update(omega, rho_gs)
-
+        omega = omega_update(omega, rho_gs)
         if iter == 100:
             sor_100 = new_grid.copy()
 
@@ -138,9 +138,7 @@ eps = 10e-5
 grid = np.zeros((nx, ny))
 
 sor_final, sor_100, iter_sor = sor(grid, eps)
-from IPython import embed
 
-embed()
 # jacobi_final, jacobi_100, iter_jacobi = jacobi(grid, eps)
 # seidel_final, seidel_100, iter_seidel = gauss_seidel(grid, eps)
 #
@@ -150,7 +148,3 @@ embed()
 # plot3D(seidel_final, "seidel_final")
 plot3D(sor_100, "sor_100")
 plot3D(sor_final, "sor_final")
-
-from IPython import embed
-
-embed()
