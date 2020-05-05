@@ -3,13 +3,10 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import convolve
 
 
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 
 
 def jacobi(grid, threshold):
-    nx = grid.shape[0]
-    ny = grid.shape[1]
 
     new_grid = fill_boundary(grid)
     old_grid = new_grid.copy()
@@ -20,7 +17,8 @@ def jacobi(grid, threshold):
         old_grid = new_grid.copy()
 
         new_grid[1:-1, 1:-1] = convolve(old_grid, checkerboard((3, 3)))[1:-1, 1:-1] / 4
-        # overwrite interior of data with interior of convolution output; discard boundary. we use convolutions to quickly calculate the sum of four neighbors
+        # overwrite interior of data with interior of convolution output;
+        # discard boundary. we use convolutions to quickly calculate the sum of four neighbors
 
         if iter == 100:
             phi_100 = new_grid.copy()
@@ -81,7 +79,7 @@ def sor(grid, threshold):
         ) + omega * (convolve(old_grid, checkerboard((3, 3)))[1:-1, 1:-1][black] / 4)
 
         if iter == 1:
-            omega = 1/(1 - rho_gs / 2)
+            omega = 1 / (1 - rho_gs / 2)
         else:
             omega = omega_update(omega, rho_gs)
         new_grid[1:-1, 1:-1][white] = new_grid[1:-1, 1:-1][white] * (
