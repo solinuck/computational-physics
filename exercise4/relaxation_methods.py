@@ -81,7 +81,7 @@ def sor(grid, threshold):
         ) + omega * (convolve(old_grid, checkerboard((3, 3)))[1:-1, 1:-1][black] / 4)
 
         if iter == 1:
-            omega = 1/(1 - rho_gs / 2)
+            omega = 1 / (1 - rho_gs / 2)
         else:
             omega = omega_update(omega, rho_gs)
         new_grid[1:-1, 1:-1][white] = new_grid[1:-1, 1:-1][white] * (
