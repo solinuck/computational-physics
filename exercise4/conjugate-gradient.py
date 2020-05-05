@@ -2,19 +2,20 @@ import numpy as np
 
 
 def cg_method(A, b, x, epsilon):
-    n = -A @ x + b
+    n = -(A @ x) + b
     g = n
     grad = np.inf
     iter = 0
     while grad >= epsilon:
         iter += 1
-        l = (g @ g)/(n @ (A @ n))
+        lam = (g @ g) / (n @ (A @ n))
 
-        x += l * n
-        g_1 = g - l * A @ n
-        n_1 = g_1 + n * (g_1 @ g_1)/(g @ g)
+        x = x + lam * n
+        g_1 = g - lam * A @ n
+        n_1 = g_1 + n * (g_1 @ g_1) / (g @ g)
 
         g = g_1
+
         n = n_1
         grad = np.linalg.norm(n)
     return x, iter
@@ -26,19 +27,17 @@ def sd_method(A, b, x, epsilon):
     iter = 0
     while grad >= epsilon:
         iter += 1
-        n = - A @ x + b
-        l = (n @ n) / (n @ (A @ n))
+        n = -A @ x + b
+        lam = (n @ n) / (n @ (A @ n))  # rescale lambda
 
-        x += l*n
+        x = x + lam * n  # move towards minimum
         grad = np.linalg.norm(n)
-        print(grad)
 
-        if iter > 10:
-            break
     return x, iter
 
 
 A = np.loadtxt("CG_Matrix_10x10.dat")
 b = np.zeros(10)
 b.fill(1)
+print(sd_method(A, b, b, 1e-10))
 print(cg_method(A, b, b, 1e-10))
