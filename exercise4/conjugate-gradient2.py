@@ -19,7 +19,7 @@ def cg_method(b, x, epsilon):
         g = g_1
         n = n_1
         grad = np.linalg.norm(n)
-        if iter > 100:
+        if iter > 10000:
             break
     return x, iter
 
@@ -43,7 +43,6 @@ def create_boundary(size):
     width = int(np.sqrt(size))
     allX = np.linspace(-np.pi / 2, np.pi / 2, width)
     side = np.cos(allX)
-    print(side)
     for i in range(size):
         j = i % width
         if i < width: # at left edge
@@ -56,8 +55,12 @@ def create_boundary(size):
             res[i] += side[j]
     return(res)
 
+
 #print(multA(np.array([0, 1, 2, 3, 4, 5, 6, 7, 8])))
 
-print(create_boundary(7*7))
+x = np.zeros((79**2))
+x.fill(1)
+b = create_boundary(79**2)
 
-#print(cg_method(x, x, 1e-5))
+
+print(cg_method(b, x, 1e-5))
