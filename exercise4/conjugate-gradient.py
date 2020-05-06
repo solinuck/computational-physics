@@ -29,24 +29,24 @@ def sd_method(A, b, x, epsilon):
         n = -A @ x + b
         l = (n @ n) / (n @ (A @ n))
 
-        x += l * n
+        x = x + l * n
         grad = np.linalg.norm(n)
-        print(grad)
-        from IPython import embed
 
-        embed()
-
-        if iter > 10:
-            break
+        # if iter > 10:
+        #     break
     return x, iter
 
 
 A = np.loadtxt("CG_Matrix_10x10.dat")
 b = np.zeros(10)
 b.fill(1)
-result, iter_sd = sd_method(A, b, b, 10e-10)
-# print(cg_method(A, b, b, 1e-10))
+sd_final, iter_sd = sd_method(A, b, b, 1e-10)
+cg_final, iter_cg = cg_method(A, b, b, 1e-10)
 
-from IPython import embed
-
-embed()
+print("number of iterations:")
+print("steepest descent: ", iter_sd)
+print("conjugate gradient: ", iter_cg)
+print("\n")
+print("x[0], |x|")
+print(sd_final[0], np.linalg.norm(sd_final))
+print(cg_final[0], np.linalg.norm(cg_final))
