@@ -66,8 +66,7 @@ def sor(grid, threshold):
     rho_gs = rho_j ** 2
     iter = 0
     omega = 1
-    threshold_reached = False
-    while iter < 100:
+    while np.amax(new_grid - old_grid) > threshold or iter == 0:
         iter += 1
 
         old_grid = new_grid.copy()
@@ -94,11 +93,7 @@ def sor(grid, threshold):
         if iter == 100:
             sor_100 = new_grid.copy()
 
-        if np.amax(new_grid - old_grid) <= threshold and not threshold_reached:
-            threshold_reached = True
-            iter_till_threshold = iter
-
-    return new_grid, sor_100, iter_till_threshold
+    return new_grid, sor_100, iter
 
 
 def omega_update(omega, rho_GS):
@@ -131,7 +126,7 @@ def checkerboard(shape):
     return np.indices(shape).sum(axis=0) % 2
 
 
-def plot3D(phi, savename, nx=81, ny=81):
+def plot3D(phi, title, savename, nx=81, ny=81):
     allX = np.linspace(-np.pi / 2, np.pi / 2, nx)
     allY = np.linspace(-np.pi / 2, np.pi / 2, ny)
 
@@ -139,7 +134,7 @@ def plot3D(phi, savename, nx=81, ny=81):
 
     fig = plt.figure()
     ax = fig.gca(projection="3d")
-
+    plt.title(title)
     surf = ax.plot_surface(
         xx, yy, phi, cmap=cm.coolwarm, linewidth=0, antialiased=False
     )
@@ -156,7 +151,9 @@ eps = 1e-5
 grid = np.zeros((nx, ny))
 
 jacobi_final, jacobi_100, iter_jacobi = jacobi(grid, eps)
+grid = np.zeros((nx, ny))
 seidel_final, seidel_100, iter_seidel = gauss_seidel(grid, eps)
+grid = np.zeros((nx, ny))
 sor_final, sor_100, iter_sor = sor(grid, eps)
 
 print("Number of iterations:")
@@ -168,9 +165,9 @@ print(f"successive overrelaxation: {iter_sor}")
 # gauss-seidel: 450
 # successive overrelaxation: 59
 
-plot3D(jacobi_100, "img/jacobi_100")
-plot3D(jacobi_final, "img/jacobi_final")
-plot3D(seidel_100, "img/seidel_100")
-plot3D(seidel_final, "img/seidel_final")
-plot3D(sor_100, "img/sor_100")
-plot3D(sor_final, "img/sor_final")
+plot3D(jacobi_100, "Task1: jacobi after 100 iterations", "img/jacobi_100")
+plot3D(jacobi_final, "Task1: jacobi final result", "img/jacobi_final")
+plot3D(seidel_100, "Task1: gauss-seidel after 100 iterations", "img/seidel_100")
+plot3D(seidel_final, "Task1: gauss-seidel final result", "img/seidel_final")
+plot3D(sor_100, "Task1: successive overrelaxation after 100 iterations", "img/sor_100")
+plot3D(sor_final, "Task1: successive overrelaxation final result", "img/sor_final")

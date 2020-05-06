@@ -30,24 +30,15 @@ def sd_method(A, b, x, epsilon):
         n = -A @ x + b
         lam = (n @ n) / (n @ (A @ n))  # rescale lambda
 
-<<<<<<< HEAD
-        x = x + l * n
-        grad = np.linalg.norm(n)
-
-        # if iter > 10:
-        #     break
-=======
         x = x + lam * n  # move towards minimum
         grad = np.linalg.norm(n)
 
->>>>>>> 5d1f8da48a76f55933bf352b02936bddfff1b661
     return x, iter
 
 
 A = np.loadtxt("CG_Matrix_10x10.dat")
 b = np.zeros(10)
 b.fill(1)
-<<<<<<< HEAD
 sd_final, iter_sd = sd_method(A, b, b, 1e-10)
 cg_final, iter_cg = cg_method(A, b, b, 1e-10)
 
@@ -58,7 +49,3 @@ print("\n")
 print("x[0], |x|")
 print(sd_final[0], np.linalg.norm(sd_final))
 print(cg_final[0], np.linalg.norm(cg_final))
-=======
-print(sd_method(A, b, b, 1e-10))
-print(cg_method(A, b, b, 1e-10))
->>>>>>> 5d1f8da48a76f55933bf352b02936bddfff1b661
