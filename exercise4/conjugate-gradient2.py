@@ -47,27 +47,18 @@ def multA(x):
     return res
 
 
-<<<<<<< HEAD
-def create_boundary(size):
-    res = np.zeros(size)
-=======
 def create_boundary(size):  # create b vector
 
     res = np.zeros(size)
 
->>>>>>> ab77b6a9da9337c324a8804d15da735f513b0414
     width = int(np.sqrt(size))
     allX = np.linspace(-np.pi / 2, np.pi / 2, width)
     side = np.cos(allX)
     # since all edges have the same boundary conditions,
     # we use only one array for all four
     for i in range(size):
-<<<<<<< HEAD
-        if i < width:  # at left edge
-=======
 
         if i < width:  # point at left edge -> add boundary condition
->>>>>>> ab77b6a9da9337c324a8804d15da735f513b0414
             res[i] += side[i % width]
         if i >= (width - 1) * width:  # at right edge
             res[i] += side[i % width]
@@ -109,7 +100,6 @@ cg_50 = cg_50.reshape(79, 79)
 cg_100 = cg_100.reshape(79, 79)
 
 print(iter)
-<<<<<<< HEAD
 # 131 iterations
 
 plot3D(
@@ -128,11 +118,3 @@ plot3D(
     79,
     79,
 )
-=======
-# 131
-
-plot3D(cg_final, "img/conjugate", 79, 79)
-plot3D(cg_10, "img/conjugate_10", 79, 79)
-plot3D(cg_50, "img/conjugate_50", 79, 79)
-plot3D(cg_100, "img/conjugate_100", 79, 79)
->>>>>>> ab77b6a9da9337c324a8804d15da735f513b0414
