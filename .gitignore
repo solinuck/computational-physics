@@ -1,2 +1,4 @@
 .ipynb_checkpoints
 anim
+__pycache__/
+*.pyc
