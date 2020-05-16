@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.spatial.distance import cdist
+from itertools import permutations
 
 
 class MDEngine:
@@ -50,33 +51,44 @@ class MDEngine:
         self.a = self.a_nplus1
 
     def calcForce(self, eps=1.65e-21, sig=3.4e-10):
-        nearestParticle = self.getNearestParticle()
+        # nearestParticle = self.getNearestParticle()
 
         f = np.zeros((self.n, self.d))
-        for i, pair in enumerate(zip(self.r, nearestParticle)):
+        for i, pair in enumerate(permutations(self.r, 2)):
             dx, dy = self.toroidalCoord(pair[0], pair[1])
-            f[i, 0] = self.lennardJonesForce(dx)
-            f[i, 1] = self.lennardJonesForce(dy)
 
-        f_direction = (self.r > nearestParticle).astype(int)
-        f_direction[f_direction == 0] = -1
-        f = f * f_direction
+            idx = i // (self.n - 1)
+            f[idx, 0] += self.lennardJonesForce(dx)
+            f[idx, 1] += self.lennardJonesForce(dy)
+
+        from IPython import embed
+
+        embed()
+        # f_direction = (self.r > nearestParticle).astype(int)
+        # f_direction[f_direction == 0] = -1
+        # f = f * f_direction
+
+        #  array([[-3.75165770e-72, -2.44213344e-74],
+        #         [ 1.18319646e-67,  6.54616566e-74],
+        #         [ 3.75165770e-72,  2.44213344e-74],
+        #         [ 3.72946159e-75, -2.60963080e-72],
+        #         [-1.18319646e-67, -6.54616566e-74]])
 
         return f
 
-    def lennardJonesForce(self, r, eps=1.65e-21, sig=3.4e-10):
+    def lennardJonesForce(self, r, eps=1, sig=1):
         return 24 * eps / r * (2 * (sig / r) ** 12 - (sig / r) ** 6)
 
-    def getNearestParticle(self):
-        allR = cdist(
-            self.r, self.r, lambda a, b: self.euclidean(*self.toroidalCoord(a, b))
-        )
-        allR = allR + (np.eye(self.n) * 2)
+    # def getNearestParticle(self):
+    #     allR = cdist(
+    #         self.r, self.r, lambda a, b: self.euclidean(*self.toroidalCoord(a, b))
+    #     )
 
-        minPos = np.argmin(allR, axis=1)
-        nearestParticle = self.r[minPos]
-
-        return nearestParticle
+    #  array([[0.        , 0.11586979, 0.7483549 , 0.45438486, 0.71028233],
+    #         [0.11586979, 0.        , 1.26489742, 0.84764244, 1.19339731],
+    #         [0.7483549 , 1.26489742, 0.        , 0.98308158, 0.0067171 ],
+    #         [0.45438486, 0.84764244, 0.98308158, 0.        , 1.06104569],
+    #         [0.71028233, 1.19339731, 0.0067171 , 1.06104569, 0.        ]])
 
     def toroidalCoord(self, p1, p2):
         x1 = self.getInitialcoordinates(p1[0])
@@ -84,13 +96,18 @@ class MDEngine:
         x2 = self.getInitialcoordinates(p2[0])
         y2 = self.getInitialcoordinates(p2[1])
 
-        dx = np.abs(x1 - x2)
-        dy = np.abs(y1 - y2)
+        dx = x1 - x2
+        dy = y1 - y2
 
         if dx > (self.l / 2):
-            dx = self.l - dx
+            dx = dx - self.l
+        elif dx < -(self.l / 2):
+            dx = dx + self.l
+
         if dy > (self.l / 2):
-            dy = self.l - dy
+            dy = dy - self.l
+        elif dy < -(self.l / 2):
+            dy = dy + self.l
         return dx, dy
 
     def euclidean(self, dx, dy):
