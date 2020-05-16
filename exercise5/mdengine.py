@@ -1,22 +1,27 @@
 import numpy as np
+from scipy.spatial.distance import cdist
 
 
 class MDEngine:
     kb = 1
 
-    def __init__(self, d=2, n=5, m=1, l=10, tau=1):
+    def __init__(self, d=2, n=5, m=1, l=2, tau=1):
         self.d = d
         self.n = n
         self.m = m
         self.l = l
         self.tau = tau
+        self.initialize()
+        self.update()
+
+    def initialize(self):
         self.initR()
         self.initV()
         self.correctV()
-        self.lennardJones_pot(1, 1)
+        self.updateFirstTime()
 
     def initR(self):
-        self.r = np.random.uniform(0, self.l, (self.n, self.d))
+        self.r = np.random.uniform(-self.l / 2, self.l / 2, (self.n, self.d))
 
     def initV(self):
         temp = 1
@@ -30,32 +35,70 @@ class MDEngine:
     def totMomentum(self):
         return np.sum(self.m * self.v, axis=0)
 
-    def vVerlet(self):
-        # a = - grad(potential) / m
-        a = np.ones(self.n, self.d)
-        a_nplus1 = a
+    def updateFirstTime(self):
+
+        a = self.calcForce() / self.m
         self.r += self.tau * self.v + self.tau ** 2 * a / 2
-        self.v += self.tau / 2 * (a + a_nplus1)
+        self.a_nplus1 = self.calcForce() / self.m
+        self.v += self.tau / 2 * (a + self.a_nplus1)
+        self.a = self.a_nplus1
 
-    def lennardJones_pot(self, eps, sig):
-        r_ij = self.calc_distance()
+    def update(self):
+        self.r += self.tau * self.v + self.tau ** 2 * self.a / 2
+        self.a_nplus1 = self.calcForce() / self.m
+        self.v += self.tau / 2 * (self.a + self.a_nplus1)
+        self.a = self.a_nplus1
 
-        U_ij = 4 * eps * ((sig / r_ij) ** 12 - (sig / r_ij) ** 6)
+    def calcForce(self, eps=1.65e-21, sig=3.4e-10):
+        nearestParticle = self.getNearestParticle()
 
-        from IPython import embed
+        f = np.zeros((self.n, self.d))
+        for i, pair in enumerate(zip(self.r, nearestParticle)):
+            dx, dy = self.toroidalCoord(pair[0], pair[1])
+            f[i, 0] = self.lennardJonesForce(dx)
+            f[i, 1] = self.lennardJonesForce(dy)
 
-        embed()
+        f_direction = (self.r > nearestParticle).astype(int)
+        f_direction[f_direction == 0] = -1
+        f = f * f_direction
 
-        return U_ij
+        return f
 
-    def calc_distance(self):
-        r_ij = r_ij = np.zeros((self.n, self.n))
-        for idx, r_i in enumerate(self.r):
-            r_ij[idx][:] = np.linalg.norm(self.r - r_i, axis=1)
-        return r_ij
+    def lennardJonesForce(self, r, eps=1.65e-21, sig=3.4e-10):
+        return 24 * eps / r * (2 * (sig / r) ** 12 - (sig / r) ** 6)
 
-    # @staticmethod
-    # def faculty(n):
-    #     if n == 0:
-    #         return 1
-    #     return n * faculty(n - 1)
+    def getNearestParticle(self):
+        allR = cdist(
+            self.r, self.r, lambda a, b: self.euclidean(*self.toroidalCoord(a, b))
+        )
+        allR = allR + (np.eye(self.n) * 2)
+
+        minPos = np.argmin(allR, axis=1)
+        nearestParticle = self.r[minPos]
+
+        return nearestParticle
+
+    def toroidalCoord(self, p1, p2):
+        x1 = self.getInitialcoordinates(p1[0])
+        y1 = self.getInitialcoordinates(p1[1])
+        x2 = self.getInitialcoordinates(p2[0])
+        y2 = self.getInitialcoordinates(p2[1])
+
+        dx = np.abs(x1 - x2)
+        dy = np.abs(y1 - y2)
+
+        if dx > (self.l / 2):
+            dx = self.l - dx
+        if dy > (self.l / 2):
+            dy = self.l - dy
+        return dx, dy
+
+    def euclidean(self, dx, dy):
+        return dx ** 2 + dy ** 2
+
+    def getInitialcoordinates(self, x):
+        while x > (self.l / 2):
+            x -= self.l
+        while x < (-self.l / 2):
+            x += self.l
+        return x
