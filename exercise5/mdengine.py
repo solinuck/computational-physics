@@ -1,6 +1,8 @@
 import numpy as np
 import itertools
 
+import logs
+
 
 class MDEngine:
     kb = 1
@@ -50,13 +52,22 @@ class MDEngine:
         return np.sum(self.m * self.v, axis=0)
 
     def equilibrate(self):
-        for t in np.linspace(0, 10 * 0.01, 10):
+        for step, t in enumerate(np.linspace(0, 10 * 0.01, 10)):
+            self.step = step
+            self.t = t
             self.update()
             self.storeFrame()
         print("end")
 
-    def storeFrame(self):
-        pass
+    def init_logger(self):
+        energy_formater = f"{self.step} - {self.t} - {self.temp} - {self.ekin} - {self.epot} - {self.etot}"
+        trajectory_formater = f"{self.r}"
+
+        energy_logger = logs.get_logger("eq_engery", "equilibration.e", energy_formater)
+        trajectory_logger = logs.get_logger(
+            "eq_engery", "equilibration.xyz", trajectory_formater
+        )
+        return energy_logger, trajectory_logger
 
     def computeEpot(self):
         self.epot = 0
