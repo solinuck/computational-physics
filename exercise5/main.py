@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from mdengine import MDEngine
 
 
@@ -14,7 +17,41 @@ class lennardJones:
 
 
 if __name__ == "__main__":
-    lj = lennardJones(eps=1.65e-21, sig=3.4e-10)
-    engine = MDEngine(d=2, n=5, m=1, l=2, tau=1, potential=lj)
+    lj = lennardJones(eps=99.4, sig=3.4)
+    config = {
+        "dim": 2,
+        "n": 100,
+        "m": 39.9,
+        "l": 37.8 * 20,  # 37.8
+        "tau": 0.01,
+        "pot": lj,
+        "target_t": 150,
+    }
+    config_params = [
+        f"d{config['dim']}",
+        f"n{config['n']}",
+        f"m{config['m']}",
+        f"l{config['l']}",
+        f"tau{config['tau']}",
+        f"t{config['target_t']}",
+    ]
+
+    config_path = "_".join([x for x in config_params])
+    save_paths = {}
+    save_paths["eq_energy"] = os.path.join("logs", "equi", "energy", config_path)
+    save_paths["eq_tra"] = os.path.join("logs", "tra", "energy", config_path)
+
+    for save_path in save_paths.values():
+        Path(save_path).mkdir(parents=True, exist_ok=True)
+
+    engine = MDEngine(
+        d=config["dim"],
+        n=config["n"],
+        m=config["m"],
+        l=config["l"],
+        tau=config["tau"],
+        potential=config["pot"],
+        target_temp=config["target_t"],
+    )
     engine.initialize()
-    engine.equilibrate()
+    engine.equilibrate(os.path.join(save_paths["eq_energy"], "test"))
