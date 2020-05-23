@@ -1,7 +1,8 @@
 import sys
 
 import logging
-from logging.handlers import TimedRotatingFileHandler
+import os
+from logging.handlers import RotatingFileHandler
 
 
 class Logging:
@@ -14,8 +15,11 @@ class Logging:
         return console_handler
 
     def get_file_handler(self, log_file):
-        file_handler = TimedRotatingFileHandler(log_file, when="midnight")
+        file_handler = RotatingFileHandler(log_file, backupCount=5)
         file_handler.setFormatter(self.formatter)
+        should_roll_over = os.path.isfile(log_file)
+        if should_roll_over:  # log already exists, roll over!
+            file_handler.doRollover()
         return file_handler
 
     def get_logger(self, logger_name, log_file):

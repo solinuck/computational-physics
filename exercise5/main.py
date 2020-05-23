@@ -38,8 +38,10 @@ if __name__ == "__main__":
 
     config_path = "_".join([x for x in config_params])
     save_paths = {}
-    save_paths["eq_energy"] = os.path.join("logs", "equi", "energy", config_path)
-    save_paths["eq_tra"] = os.path.join("logs", "tra", "energy", config_path)
+    save_paths["eq_e"] = os.path.join("logs", "equi", "energy", config_path)
+    save_paths["eq_tra"] = os.path.join("logs", "equi", "tra", config_path)
+    save_paths["prod_e"] = os.path.join("logs", "prod", "energy", config_path)
+    save_paths["prod_tra"] = os.path.join("logs", "prod", "tra", config_path)
 
     for save_path in save_paths.values():
         Path(save_path).mkdir(parents=True, exist_ok=True)
@@ -54,4 +56,7 @@ if __name__ == "__main__":
         target_temp=config["target_t"],
     )
     engine.initialize()
-    engine.equilibrate(os.path.join(save_paths["eq_energy"], "test"))
+    engine.equilibrate(
+        os.path.join(save_paths["eq_e"], "test"),
+        os.path.join(save_paths["eq_tra"], "test"),
+    )

@@ -54,23 +54,34 @@ class MDEngine:
         return np.sum(self.m * self.v, axis=0)
 
     def equilibrate(self, energypath, trapath):
-        self.energy_logger = self.logs.get_logger("eq_engery", energypath)
-        self.energy_logger.info("")
-        self.energy_logger.info(
-            "\t\t".join(["step", "t", "temp", "ekin", "epot", "etot"])
-        )
-        self.tra_logger = self.logs.get_logger("eq_tra", trapath)
+        energy_logger = self.logs.get_logger("eq_engery", energypath)
+        energy_logger.info("")
+        energy_logger.info("\t\t".join(["step", "t", "temp", "ekin", "epot", "etot"]))
+        tra_logger = self.logs.get_logger("eq_tra", trapath)
         eq_steps = 500
         for step, t in enumerate(np.linspace(0, (eq_steps - 1) * 0.01, eq_steps)):
             self.update()
-            formated = [step]
-            formated += [
-                self.formater(x)
-                for x in (t, self.temp, self.ekin, self.epot, self.etot)
-            ]
+            self.log_energy(energy_logger, step, t)
+            self.log_trajectory(tra_logger, step, t)
 
-            text = "\t\t".join([str(x) for x in formated])
-            self.energy_logger.info(text)
+    def log_energy(self, logger, step, t):
+        formated = [step]
+        formated += [
+            self.formater(x) for x in (t, self.temp, self.ekin, self.epot, self.etot)
+        ]
+
+        text = "\t\t".join([str(x) for x in formated])
+        logger.info(text)
+
+    def log_trajectory(self, logger, step, t):
+        # logger.info("")
+        # logger.info("Trajectory")
+        logger.info("")
+        logger.info(f"step = {step} \t\t time = {t}")
+        logger.info("\t\t".join(["step", "x", "y", "z"]))
+        for idx, pos in enumerate(self.r):
+            text = "\t\t".join([str(x) for x in (idx, *pos)])
+            logger.info(text)
 
     def formater(self, num):
         if np.abs(num) > 1e3:
