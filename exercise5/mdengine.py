@@ -3,6 +3,7 @@ import itertools
 import matplotlib.pyplot as plt
 
 import logs
+import matplotlib.pyplot as plt
 
 
 class MDEngine:
@@ -42,7 +43,11 @@ class MDEngine:
             self.r[:, 2] = 0
 
     def initV(self):
+<<<<<<< HEAD
         temp = 150
+=======
+        temp = self.target_temp
+>>>>>>> 4b60fd2f9452728b049c99fa3b4d965b100e835d
         sig = np.sqrt((self.kb * temp) / self.m)
         self.v = np.random.normal(loc=0, scale=sig, size=(self.n, 3))
         if self.d == 1:
@@ -65,7 +70,7 @@ class MDEngine:
         eq_steps = 500
         for step, t in enumerate(np.linspace(0, (eq_steps - 1) * 0.01, eq_steps)):
             self.update()
-            if (step % 3) == 0:
+            if (step % 1) == 0:
                 self.thermostat(self.target_temp)
             self.log_energy(energy_logger, step, t)
             if step < 10:
@@ -102,6 +107,9 @@ class MDEngine:
 
     def update(self, init=False):
         # self.computeEpot()
+        from IPython import embed
+
+        embed()
         if init:
             self.a = self.calcForce() / self.m
             self.a = np.clip(self.a, -10000, 10000)
