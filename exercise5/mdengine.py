@@ -57,12 +57,14 @@ class MDEngine:
         energy_logger = self.logs.get_logger("eq_engery", energypath)
         energy_logger.info("")
         energy_logger.info("\t\t".join(["step", "t", "temp", "ekin", "epot", "etot"]))
-        tra_logger = self.logs.get_logger("eq_tra", trapath)
-        eq_steps = 500
+        # tra_logger = self.logs.get_logger("eq_tra", trapath)
+        eq_steps = 1000
         for step, t in enumerate(np.linspace(0, (eq_steps - 1) * 0.01, eq_steps)):
             self.update()
+            if (step % 3) == 0:
+                self.thermostat(self.target_temp)
             self.log_energy(energy_logger, step, t)
-            self.log_trajectory(tra_logger, step, t)
+            # self.log_trajectory(tra_logger, step, t)
 
     def log_energy(self, logger, step, t):
         formated = [step]
@@ -99,7 +101,6 @@ class MDEngine:
         self.v += self.tau / 2 * (self.a + self.a_nplus1)
         self.a = self.a_nplus1.copy()
         self.ekin = np.sum(self.v ** 2 * self.m) / 2
-        self.thermostat(self.target_temp)
         self.temp = 2 * self.ekin / (self.d * self.kb * (self.n - 1))
         self.etot = self.ekin + self.epot
 
