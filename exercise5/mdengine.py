@@ -2,6 +2,7 @@ import numpy as np
 import itertools
 
 import logs
+import matplotlib.pyplot as plt
 
 
 class MDEngine:
@@ -31,15 +32,15 @@ class MDEngine:
         self.update(init=True)
 
     def initR(self):
-        self.r = np.random.uniform(-self.l / 2, self.l / 2, (self.n, 3))
+        self.r = np.random.uniform(0, self.l, (self.n, 3))
         if self.d == 1:
             self.r[:, 1] = 0
         if self.d <= 2:
             self.r[:, 2] = 0
 
     def initV(self):
-        temp = 1
-        sig = np.sqrt(self.m / (self.kb * temp))
+        temp = self.target_temp
+        sig = np.sqrt((self.kb * temp) / self.m)
         self.v = np.random.normal(loc=0, scale=sig, size=(self.n, 3))
         if self.d == 1:
             self.v[:, 1] = 0
@@ -61,7 +62,7 @@ class MDEngine:
         eq_steps = 1000
         for step, t in enumerate(np.linspace(0, (eq_steps - 1) * 0.01, eq_steps)):
             self.update()
-            if (step % 3) == 0:
+            if (step % 1) == 0:
                 self.thermostat(self.target_temp)
             self.log_energy(energy_logger, step, t)
             # self.log_trajectory(tra_logger, step, t)
@@ -94,6 +95,9 @@ class MDEngine:
 
     def update(self, init=False):
         # self.computeEpot()
+        from IPython import embed
+
+        embed()
         if init:
             self.a = self.calcForce() / self.m
         self.r += self.tau * self.v + self.tau ** 2 * self.a / 2
