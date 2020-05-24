@@ -20,9 +20,9 @@ if __name__ == "__main__":
     lj = lennardJones(eps=99.4, sig=3.4)
     config = {
         "dim": 2,
-        "n": 100,
+        "n": 10,
         "m": 39.9,
-        "l": 37.8 * 20,  # 37.8
+        "l": 37.8,  # 37.8
         "tau": 0.01,
         "pot": lj,
         "target_t": 150,

@@ -1,5 +1,6 @@
 import numpy as np
 import itertools
+import matplotlib.pyplot as plt
 
 import logs
 
@@ -28,18 +29,21 @@ class MDEngine:
         self.initR()
         self.initV()
         self.correctV()
+        plt.scatter(self.r[:, 0], self.r[:, 1])
+        plt.savefig("scatter_-1")
+        plt.close()
         self.update(init=True)
 
     def initR(self):
-        self.r = np.random.uniform(-self.l / 2, self.l / 2, (self.n, 3))
+        self.r = np.random.uniform(0, self.l, (self.n, 3))
         if self.d == 1:
             self.r[:, 1] = 0
         if self.d <= 2:
             self.r[:, 2] = 0
 
     def initV(self):
-        temp = 1
-        sig = np.sqrt(self.m / (self.kb * temp))
+        temp = 150
+        sig = np.sqrt((self.kb * temp) / self.m)
         self.v = np.random.normal(loc=0, scale=sig, size=(self.n, 3))
         if self.d == 1:
             self.v[:, 1] = 0
@@ -58,12 +62,16 @@ class MDEngine:
         energy_logger.info("")
         energy_logger.info("\t\t".join(["step", "t", "temp", "ekin", "epot", "etot"]))
         # tra_logger = self.logs.get_logger("eq_tra", trapath)
-        eq_steps = 1000
+        eq_steps = 500
         for step, t in enumerate(np.linspace(0, (eq_steps - 1) * 0.01, eq_steps)):
             self.update()
             if (step % 3) == 0:
                 self.thermostat(self.target_temp)
             self.log_energy(energy_logger, step, t)
+            if step < 10:
+                plt.scatter(self.r[:, 0], self.r[:, 1])
+                plt.savefig("scatter_{}".format(step))
+                plt.close()
             # self.log_trajectory(tra_logger, step, t)
 
     def log_energy(self, logger, step, t):
@@ -96,8 +104,11 @@ class MDEngine:
         # self.computeEpot()
         if init:
             self.a = self.calcForce() / self.m
+            self.a = np.clip(self.a, -10000, 10000)
+
         self.r += self.tau * self.v + self.tau ** 2 * self.a / 2
         self.a_nplus1 = self.calcForce() / self.m
+        # self.a_nplus1 = np.clip(self.a_nplus1, -100, 100)
         self.v += self.tau / 2 * (self.a + self.a_nplus1)
         self.a = self.a_nplus1.copy()
         self.ekin = np.sum(self.v ** 2 * self.m) / 2
@@ -112,7 +123,6 @@ class MDEngine:
             idx = i // (self.n - 1)
 
             dxyz = self.toroDist3D(p1, p2)
-
             f[idx, 0] += self.pot.force(dxyz[0])
             f[idx, 1] += self.pot.force(dxyz[1])
             f[idx, 2] += self.pot.force(dxyz[2])
@@ -131,13 +141,13 @@ class MDEngine:
     def toroDist3D(self, v1, v2):
         return np.array(
             (
-                self.toroDist1D(v2[0], v1[0]),
-                self.toroDist1D(v2[1], v1[1]),
-                self.toroDist1D(v2[2], v1[2]),
+                self.toroDist1D(v1[0], v2[0]),
+                self.toroDist1D(v1[1], v2[1]),
+                self.toroDist1D(v1[2], v2[2]),
             )
         )
 
-    def toroDist1D(self, x1, x2):  # Can we somehow parallelize this?
+    def toroDist1D(self, x1, x2):
         x1 = self.getInitialcoordinates(x1)
         x2 = self.getInitialcoordinates(x2)
 
@@ -151,9 +161,7 @@ class MDEngine:
         return dx
 
     def getInitialcoordinates(self, x):
-        if np.abs(x) > (self.l):
-            x = x % self.l
-        return x
+        return x % self.l
 
     # def computeEpot(self):
     #     self.epot = 0
