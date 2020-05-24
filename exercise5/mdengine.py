@@ -25,6 +25,8 @@ class MDEngine:
         self.temp = 0
         self.target_temp = target_temp
         self.logs = logs.Logging()
+        self.A = []
+        self.einheits = []
 
     def initialize(self):
         self.initR()
@@ -69,10 +71,7 @@ class MDEngine:
             if (step % 1) == 0:
                 self.thermostat(self.target_temp)
             self.log_energy(energy_logger, step, t)
-            plotter.plot_box(self.r, self.v, self.l)
-            from IPython import embed
-
-            embed()
+            # plotter.plot_box(self.r, self.v, self.l)
             # if step < 10:
             #     plt.scatter(self.r[:, 0], self.r[:, 1])
             #     plt.savefig("scatter_{}".format(step))
@@ -109,8 +108,7 @@ class MDEngine:
         # self.computeEpot()
         if init:
             self.a = self.calcForce() / self.m
-            self.a = np.clip(self.a, -10000, 10000)
-
+            self.a = np.clip(self.a, -100, 100)
         self.r = self.r + self.tau * self.v + self.tau ** 2 * self.a / 2
         self.a_nplus1 = self.calcForce() / self.m
         # self.a_nplus1 = np.clip(self.a_nplus1, -100, 100)
@@ -121,24 +119,38 @@ class MDEngine:
         self.etot = self.ekin + self.epot
 
     def calcForce(self):
-        f = np.zeros((self.n, 3))
+        r_logger = self.logs.get_logger("r", "test")
+        self.f = np.zeros((self.n, 3))
         # ePair = 0
         eNonBond = 0
-        for i, (p1, p2) in enumerate(itertools.permutations(self.r, 2)):
-            idx = i // (self.n - 1)
-            print(idx)
-
+        self.A = []
+        self.einheits = []
+        self.directions = []
+        for i1, i2 in itertools.permutations(range(self.n), 2):
+            p1 = self.r[i1]
+            p2 = self.r[i2]
             dxyz = self.toroDist3D(p1, p2)
-            f[idx, 0] += self.pot.force(dxyz[0])
-            f[idx, 1] += self.pot.force(dxyz[1])
-            f[idx, 2] += self.pot.force(dxyz[2])
 
+            abs = np.sum(dxyz ** 2) ** 0.5
+            direction = dxyz / abs
+            self.f[i1] += -direction * self.pot.force(abs)
+            # r_logger.info(f"{dxyz}")
+            # self.f[i1, 0] += self.pot.force(dxyz[0])
+            # self.f[i1, 1] += self.pot.force(dxyz[1])
+            # self.f[i1, 2] += self.pot.force(dxyz[2])
+            self.A.append([p1, self.f[i1, :]])
+            self.einheits.append([p1, dxyz / (np.sum(dxyz ** 2) ** 0.5)])
+            self.directions.append([p1, dxyz])
             # ePair += self.k_pair * (np.sum(dxyz ** 2)) / 2
+            # print(dxyz)
+            # print(np.abs(dxyz))
             eNonBond += self.pot.pot(np.sum(dxyz ** 2) ** 0.5)
-
-        f = np.nan_to_num(f)
+        self.A = np.array(self.A)
+        self.einheits = np.array(self.einheits)
+        self.directions = np.array(self.directions)
+        self.f = np.nan_to_num(self.f)
         self.epot += eNonBond
-        return f
+        return self.f
 
     def thermostat(self, T):
         self.lamb = (self.d * self.kb * (self.n - 1) * T / (2 * self.ekin)) ** 0.5
@@ -157,7 +169,7 @@ class MDEngine:
         x1 = self.getInitialcoordinates(x1)
         x2 = self.getInitialcoordinates(x2)
 
-        dx = x1 - x2
+        dx = x2 - x1
 
         if dx > (self.l / 2):
             dx = dx - self.l

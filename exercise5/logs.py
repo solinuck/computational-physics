@@ -18,8 +18,8 @@ class Logging:
         file_handler = RotatingFileHandler(log_file, backupCount=5)
         file_handler.setFormatter(self.formatter)
         should_roll_over = os.path.isfile(log_file)
-        if should_roll_over:  # log already exists, roll over!
-            file_handler.doRollover()
+        # if should_roll_over:  # log already exists, roll over!
+        #    file_handler.doRollover()
         return file_handler
 
     def get_logger(self, logger_name, log_file):
