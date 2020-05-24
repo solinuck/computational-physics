@@ -3,7 +3,7 @@ import itertools
 import matplotlib.pyplot as plt
 
 import logs
-import matplotlib.pyplot as plt
+import plotter
 
 
 class MDEngine:
@@ -30,9 +30,9 @@ class MDEngine:
         self.initR()
         self.initV()
         self.correctV()
-        plt.scatter(self.r[:, 0], self.r[:, 1])
-        plt.savefig("scatter_-1")
-        plt.close()
+        # plt.scatter(self.r[:, 0], self.r[:, 1])
+        # plt.savefig("scatter_-1")
+        # plt.close()
         self.update(init=True)
 
     def initR(self):
@@ -43,11 +43,7 @@ class MDEngine:
             self.r[:, 2] = 0
 
     def initV(self):
-<<<<<<< HEAD
-        temp = 150
-=======
         temp = self.target_temp
->>>>>>> 4b60fd2f9452728b049c99fa3b4d965b100e835d
         sig = np.sqrt((self.kb * temp) / self.m)
         self.v = np.random.normal(loc=0, scale=sig, size=(self.n, 3))
         if self.d == 1:
@@ -73,10 +69,14 @@ class MDEngine:
             if (step % 1) == 0:
                 self.thermostat(self.target_temp)
             self.log_energy(energy_logger, step, t)
-            if step < 10:
-                plt.scatter(self.r[:, 0], self.r[:, 1])
-                plt.savefig("scatter_{}".format(step))
-                plt.close()
+            plotter.plot_box(self.r, self.v, self.l)
+            from IPython import embed
+
+            embed()
+            # if step < 10:
+            #     plt.scatter(self.r[:, 0], self.r[:, 1])
+            #     plt.savefig("scatter_{}".format(step))
+            #     plt.close()
             # self.log_trajectory(tra_logger, step, t)
 
     def log_energy(self, logger, step, t):
@@ -107,17 +107,14 @@ class MDEngine:
 
     def update(self, init=False):
         # self.computeEpot()
-        from IPython import embed
-
-        embed()
         if init:
             self.a = self.calcForce() / self.m
             self.a = np.clip(self.a, -10000, 10000)
 
-        self.r += self.tau * self.v + self.tau ** 2 * self.a / 2
+        self.r = self.r + self.tau * self.v + self.tau ** 2 * self.a / 2
         self.a_nplus1 = self.calcForce() / self.m
         # self.a_nplus1 = np.clip(self.a_nplus1, -100, 100)
-        self.v += self.tau / 2 * (self.a + self.a_nplus1)
+        self.v = self.v + self.tau / 2 * (self.a + self.a_nplus1)
         self.a = self.a_nplus1.copy()
         self.ekin = np.sum(self.v ** 2 * self.m) / 2
         self.temp = 2 * self.ekin / (self.d * self.kb * (self.n - 1))
@@ -129,6 +126,7 @@ class MDEngine:
         eNonBond = 0
         for i, (p1, p2) in enumerate(itertools.permutations(self.r, 2)):
             idx = i // (self.n - 1)
+            print(idx)
 
             dxyz = self.toroDist3D(p1, p2)
             f[idx, 0] += self.pot.force(dxyz[0])
