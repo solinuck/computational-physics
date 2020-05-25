@@ -104,13 +104,6 @@ class MDEngine:
     def calcForce(self):
         self.f = np.zeros((self.n, 3))
         self.epot = 0
-<<<<<<< HEAD
-=======
-        self.A = []
-        self.einheits = []
-        self.directions = []
-        self.epot = 0
->>>>>>> 4348b5ba2a5cc7761524a1779564537c9d09b434
         for i1, i2 in itertools.permutations(range(self.n), 2):
             p1, p2 = self.r[i1], self.r[i2]
 
