@@ -22,41 +22,33 @@ if __name__ == "__main__":
         "dim": 2,
         "n": 100,
         "m": 39.9,
-        "l": 37.8,  # 37.8
+        "l": 37.8,
         "tau": 0.01,
         "pot": lj,
         "target_t": 150,
     }
-    config_params = [
-        f"d{config['dim']}",
-        f"n{config['n']}",
-        f"m{config['m']}",
-        f"l{config['l']}",
-        f"tau{config['tau']}",
-        f"t{config['target_t']}",
-    ]
+    run = 0
+    logs = Path("logs")
+    eq_e = logs.joinpath("equi", "energy", f"run_{run}")
+    eq_tra = logs.joinpath("equi", "tra", f"run_{run}")
+    prod_e = logs.joinpath("prod", "energy", f"run_{run}")
+    prod_tra = logs.joinpath("prod", "tra", f"run_{run}")
 
-    config_path = "_".join([x for x in config_params])
-    save_paths = {}
-    save_paths["eq_e"] = os.path.join("logs", "equi", "energy", config_path)
-    save_paths["eq_tra"] = os.path.join("logs", "equi", "tra", config_path)
-    save_paths["prod_e"] = os.path.join("logs", "prod", "energy", config_path)
-    save_paths["prod_tra"] = os.path.join("logs", "prod", "tra", config_path)
+    save_paths = {
+        "eq_e": eq_e,
+        "eq_tra": eq_tra,
+        "prod_e": prod_e,
+        "prod_tra": prod_tra,
+    }
 
-    for save_path in save_paths.values():
-        Path(save_path).mkdir(parents=True, exist_ok=True)
-
-    engine = MDEngine(
-        d=config["dim"],
-        n=config["n"],
-        m=config["m"],
-        l=config["l"],
-        tau=config["tau"],
-        potential=config["pot"],
-        target_temp=config["target_t"],
-    )
+    for key in save_paths:
+        dir = save_paths[key].parent
+        dir.mkdir(parents=True, exist_ok=True)
+        run = 0
+        while save_paths[key].exists():
+            run += 1
+            save_paths[key] = dir.joinpath("run_{}".format(run))
+        save_paths[key].touch()
+    engine = MDEngine(config, save_paths)
     engine.initialize()
-    engine.equilibrate(
-        os.path.join(save_paths["eq_e"], "test"),
-        os.path.join(save_paths["eq_tra"], "test"),
-    )
+    engine.equilibrate()

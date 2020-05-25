@@ -1,13 +1,15 @@
 import sys
 
 import logging
-import os
+
+# import os
 from logging.handlers import RotatingFileHandler
 
 
 class Logging:
-    def __init__(self):
+    def __init__(self, name, file, console=True):
         self.formatter = logging.Formatter("%(message)s")
+        self.get_logger(name, file, console)
 
     def get_console_handler(self):
         console_handler = logging.StreamHandler(sys.stdout)
@@ -17,15 +19,27 @@ class Logging:
     def get_file_handler(self, log_file):
         file_handler = RotatingFileHandler(log_file, backupCount=5)
         file_handler.setFormatter(self.formatter)
-        should_roll_over = os.path.isfile(log_file)
-        # if should_roll_over:  # log already exists, roll over!
-        #    file_handler.doRollover()
         return file_handler
 
-    def get_logger(self, logger_name, log_file):
-        logger = logging.getLogger(logger_name)
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(self.get_console_handler())
-        logger.addHandler(self.get_file_handler(log_file))
-        logger.propagate = False
-        return logger
+    def get_logger(self, logger_name, log_file, console=True):
+        self.logger = logging.getLogger(logger_name)
+        self.logger.setLevel(logging.DEBUG)
+        if console:
+            self.logger.addHandler(self.get_console_handler())
+        self.logger.addHandler(self.get_file_handler(log_file))
+        self.logger.propagate = False
+
+    def format_log(self, *args, format_nums=False):
+        if format_nums:
+            args = [self.num_formater(x) for x in (args)]
+
+        text = "\t\t".join([str(x) for x in args])
+        self.logger.info(text)
+
+    @staticmethod
+    def num_formater(num):
+        if abs(num) > 1e3:
+            format = "{:.1e}"
+        else:
+            format = "{:<0.2f}"
+        return format.format(num)
