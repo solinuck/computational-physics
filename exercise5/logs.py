@@ -7,9 +7,9 @@ from logging.handlers import RotatingFileHandler
 
 
 class Logging:
-    def __init__(self, name, file, console=True):
+    def __init__(self, logger_name, file_name, console=True, file=True):
         self.formatter = logging.Formatter("%(message)s")
-        self.get_logger(name, file, console)
+        self.get_logger(logger_name, file_name, console, file)
 
     def get_console_handler(self):
         console_handler = logging.StreamHandler(sys.stdout)
@@ -21,12 +21,13 @@ class Logging:
         file_handler.setFormatter(self.formatter)
         return file_handler
 
-    def get_logger(self, logger_name, log_file, console=True):
+    def get_logger(self, logger_name, log_file, console, file):
         self.logger = logging.getLogger(logger_name)
         self.logger.setLevel(logging.DEBUG)
         if console:
             self.logger.addHandler(self.get_console_handler())
-        self.logger.addHandler(self.get_file_handler(log_file))
+        if file:
+            self.logger.addHandler(self.get_file_handler(log_file))
         self.logger.propagate = False
 
     def format_log(self, *args, format_nums=False):

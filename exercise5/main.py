@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 
 from mdengine import MDEngine
@@ -27,10 +28,16 @@ def create_new_files(save_paths):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Molecular Dynamics Engine")
+    parser.add_argument("-d", dest="debug", action="store_true", default=False)
+    parser.add_argument("-n", dest="n", action="store", default=100)
+
+    args = parser.parse_args()
+
     lj = lennardJones(eps=99.4, sig=3.4)
     config = {
         "dim": 2,
-        "n": 100,
+        "n": int(args.n),
         "m": 39.9,
         "l": 37.8,
         "tau": 0.01,
@@ -50,7 +57,8 @@ if __name__ == "__main__":
         "prod_e": prod_e,
         "prod_tra": prod_tra,
     }
-    create_new_files(save_paths)
-    engine = MDEngine(config, save_paths)
+    if not args.debug:
+        create_new_files(save_paths)
+    engine = MDEngine(config, save_paths, args)
     engine.initialize()
     engine.equilibrate()
