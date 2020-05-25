@@ -126,6 +126,7 @@ class MDEngine:
         self.A = []
         self.einheits = []
         self.directions = []
+        self.epot = 0
         for i1, i2 in itertools.permutations(range(self.n), 2):
             p1 = self.r[i1]
             p2 = self.r[i2]
