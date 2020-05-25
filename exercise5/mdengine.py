@@ -25,6 +25,12 @@ class MDEngine:
         self.eq_tra_log = logs.Logging(
             "eq_tra", save_paths["eq_tra"], console=False, file=not parse_args.debug
         )
+        self.snap_log = logs.Logging(
+            "snapshot",
+            save_paths["eq_tra"].parent.joinpath(f"snapshot"),
+            console=False,
+            file=True,
+        )
         self.step = -1
 
     def initialize(self):
@@ -60,7 +66,7 @@ class MDEngine:
         self.eq_e_log.logger.info("")
         self.eq_e_log.format_log("step", "t", "temp", "ekin", "epot", "etot")
 
-        eq_steps = 10000
+        eq_steps = 5  # 10000
         for t in np.linspace(0, (eq_steps - 1) * 0.01, eq_steps):
             self.update()
             if (self.step % 1) == 0:
@@ -78,9 +84,14 @@ class MDEngine:
 
             self.eq_tra_log.logger.info("")
             self.eq_tra_log.format_log(f"step = {self.step}", f"time = {t}")
-            self.eq_tra_log.format_log("step", "x", "y", "z")
+            self.eq_tra_log.format_log("particle", "x", "y", "z")
             for idx, pos in enumerate(self.r):
                 self.eq_tra_log.format_log(idx, *pos)
+        for pos in self.r:
+            self.snap_log.format_log(*pos)
+        self.snap_log.format_log("@")
+        for vel in self.v:
+            self.snap_log.format_log(*vel)
 
     def update(self, init=False):
         if init:
@@ -150,3 +161,13 @@ class MDEngine:
             dx = dx + self.l
 
         return dx
+
+    def read_snap(self, f):
+        file_object = open(f, "r")
+        a, b = file_object.read().split("@")
+        pos = np.fromstring(a, sep="\t").reshape(-1, 3)
+        vel = np.fromstring(b, sep="\t").reshape(-1, 3)
+        for i in range(len(pos)):
+            self.r = pos[i]
+            self.v = vel[i]
+        self.update(init=True)
