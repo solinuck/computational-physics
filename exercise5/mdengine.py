@@ -34,11 +34,11 @@ class MDEngine:
         self.update(init=True)
 
     def initR(self):
-        self.r = np.random.uniform(0, self.l, (self.n, 3))
-        if self.d == 1:
-            self.r[:, 1] = 0
-        if self.d <= 2:
-            self.r[:, 2] = 0
+        self.r = np.zeros((self.n, 3))
+        x = np.linspace(0, self.l, self.n ** 0.5, endpoint=False)
+        x, y = np.meshgrid(x, x)
+        self.r[:, :2] = np.vstack((x.flatten(), y.flatten())).T
+        self.r += self.l / self.n ** 0.5 / 2
 
     def initV(self):
         temp = self.target_temp
@@ -63,7 +63,7 @@ class MDEngine:
         eq_steps = 10000
         for t in np.linspace(0, (eq_steps - 1) * 0.01, eq_steps):
             self.update()
-            if (self.step % 1) == 0:
+            if (self.step % 3) == 0:
                 self.thermostat(self.target_temp)
 
             self.eq_e_log.format_log(
@@ -78,7 +78,7 @@ class MDEngine:
 
             self.eq_tra_log.logger.info("")
             self.eq_tra_log.format_log(f"step = {self.step}", f"time = {t}")
-            self.eq_tra_log.format_log("step", "x", "y", "z")
+            self.eq_tra_log.format_log("particle", "x", "y", "z")
             for idx, pos in enumerate(self.r):
                 self.eq_tra_log.format_log(idx, *pos)
 
@@ -119,14 +119,8 @@ class MDEngine:
             # plotter.plot_box(self.r, self.f, self.l, self.step)  # forces
 
             self.epot += self.lj.pot(abs)
-
+        # if self.step >= 500:
         self.f = np.nan_to_num(self.f)
-
-        from IPython import embed
-
-        embed()
-
-        return self.f
 
     def toroDist3D(self, v1, v2):
         return np.array(
