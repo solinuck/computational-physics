@@ -29,19 +29,11 @@ class MDEngine:
         self.update(init=True)
 
     def initR(self):
-<<<<<<< HEAD
         self.r = np.zeros((self.n, 3))
         x = np.linspace(0, self.l, int(self.n ** 0.5), endpoint=False)
         x, y = np.meshgrid(x, x)
         self.r[:, :2] = np.vstack((x.flatten(), y.flatten())).T
         self.r += self.l / self.n ** 0.5 / 2
-=======
-        self.r = np.random.uniform(0, self.l, (self.n, 3))
-        if self.d == 1:
-            self.r[:, 1] = 0
-        if self.d <= 2:
-            self.r[:, 2] = 0
->>>>>>> a914e154307ad5a7eb23f1db874cf6560a32e977
 
     def initV(self):
         temp = self.target_temp
@@ -73,26 +65,13 @@ class MDEngine:
         eq_e_log.logger.info("")
         eq_e_log.format_log("step", "t", "temp", "ekin", "epot", "etot")
 
-<<<<<<< HEAD
         for t in np.linspace(0, (eq_steps - 1) * 0.01, eq_steps):
             self.update()
             if (self.step % 10) == 0:
-=======
-        eq_steps = 10000
-        for t in np.linspace(0, (eq_steps - 1) * 0.01, eq_steps):
-            self.update()
-            if (self.step % 1) == 0:
->>>>>>> a914e154307ad5a7eb23f1db874cf6560a32e977
                 self.thermostat(self.target_temp)
 
             eq_e_log.format_log(
-                self.step,
-                t,
-                self.temp,
-                self.ekin,
-                self.epot,
-                self.etot,
-                format_nums=False,
+                self.step, t, self.temp, self.ekin, self.epot, self.etot
             )
 
             eq_tra_log.log_r_or_v(self.step, t, self.r)
@@ -140,10 +119,6 @@ class MDEngine:
             # plotter.plot_box(self.r, self.f, self.l, self.step)  # forces
 
             self.epot += self.lj.pot(abs)
-<<<<<<< HEAD
-=======
-
->>>>>>> a914e154307ad5a7eb23f1db874cf6560a32e977
         self.f = np.nan_to_num(self.f)
 
         return self.f
@@ -171,10 +146,26 @@ class MDEngine:
 
         return dx
 
-    def production(self, save_paths, production_steps=1000):
+    def production(self, save_paths, prod_steps=1000):
+        prod_e_log = logs.Logging("prod_e", save_paths["prod_e"], file=not self.debug)
+        prod_tra_log = logs.Logging(
+            "prod_tra", save_paths["prod_tra"], console=False, file=not self.debug
+        )
+        prod_vel_log = logs.Logging(
+            "prod_vel", save_paths["prod_vel"], console=False, file=not self.debug
+        )
+        prod_e_log.logger.info("")
+        prod_e_log.format_log("step", "t", "temp", "ekin", "epot", "etot")
         self.read_snap(save_paths["snapshot"])
-        for step in range(production_steps):
+        for t in np.linspace(0, (prod_steps - 1) * 0.01, prod_steps):
             self.update()
+
+            prod_e_log.format_log(
+                self.step, t, self.temp, self.ekin, self.epot, self.etot
+            )
+
+            prod_tra_log.log_r_or_v(self.step, t, self.r)
+            prod_vel_log.log_r_or_v(self.step, t, self.v)
 
     def read_snap(self, f):
         file_object = open(f, "r")
@@ -182,6 +173,7 @@ class MDEngine:
         pos = np.fromstring(a, sep="\t").reshape(-1, 3)
         vel = np.fromstring(b, sep="\t").reshape(-1, 3)
         for i in range(len(pos)):
-            self.r = pos[i]
-            self.v = vel[i]
+            self.r[i] = pos[i]
+            self.v[i] = vel[i]
         self.update(init=True)
+        self.step = 0
