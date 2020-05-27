@@ -29,11 +29,19 @@ class MDEngine:
         self.update(init=True)
 
     def initR(self):
+<<<<<<< HEAD
         self.r = np.zeros((self.n, 3))
         x = np.linspace(0, self.l, int(self.n ** 0.5), endpoint=False)
         x, y = np.meshgrid(x, x)
         self.r[:, :2] = np.vstack((x.flatten(), y.flatten())).T
         self.r += self.l / self.n ** 0.5 / 2
+=======
+        self.r = np.random.uniform(0, self.l, (self.n, 3))
+        if self.d == 1:
+            self.r[:, 1] = 0
+        if self.d <= 2:
+            self.r[:, 2] = 0
+>>>>>>> a914e154307ad5a7eb23f1db874cf6560a32e977
 
     def initV(self):
         temp = self.target_temp
@@ -65,9 +73,16 @@ class MDEngine:
         eq_e_log.logger.info("")
         eq_e_log.format_log("step", "t", "temp", "ekin", "epot", "etot")
 
+<<<<<<< HEAD
         for t in np.linspace(0, (eq_steps - 1) * 0.01, eq_steps):
             self.update()
             if (self.step % 10) == 0:
+=======
+        eq_steps = 10000
+        for t in np.linspace(0, (eq_steps - 1) * 0.01, eq_steps):
+            self.update()
+            if (self.step % 1) == 0:
+>>>>>>> a914e154307ad5a7eb23f1db874cf6560a32e977
                 self.thermostat(self.target_temp)
 
             eq_e_log.format_log(
@@ -125,7 +140,13 @@ class MDEngine:
             # plotter.plot_box(self.r, self.f, self.l, self.step)  # forces
 
             self.epot += self.lj.pot(abs)
+<<<<<<< HEAD
+=======
+
+>>>>>>> a914e154307ad5a7eb23f1db874cf6560a32e977
         self.f = np.nan_to_num(self.f)
+
+        return self.f
 
     def toroDist3D(self, v1, v2):
         return np.array(
