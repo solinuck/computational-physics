@@ -23,8 +23,8 @@ def create_new_files(save_paths):
         run = 0
         while save_paths[key].exists():
             run += 1
-            save_paths[key] = dir.joinpath("run_{}".format(run))
-        save_paths[key].touch()
+            save_paths[key] = dir.joinpath("{}_{}".format(save_paths[key].name, run))
+        # save_paths[key].touch()
 
 
 if __name__ == "__main__":
@@ -43,22 +43,33 @@ if __name__ == "__main__":
         "tau": 0.01,
         "pot": lj,
         "target_t": 150,
+        "debug": args.debug,
     }
 
     logs = Path("logs")
     eq_e = logs.joinpath("equi", "energy", "run_0")
     eq_tra = logs.joinpath("equi", "tra", "run_0")
+    eq_vel = logs.joinpath("equi", "vel", "run_0")
     prod_e = logs.joinpath("prod", "energy", "run_0")
     prod_tra = logs.joinpath("prod", "tra", "run_0")
+    prod_vel = logs.joinpath("prod", "vel", "run_0")
+    snapshot = logs.joinpath("snapshot", "snapshot")
 
     save_paths = {
         "eq_e": eq_e,
         "eq_tra": eq_tra,
+        "eq_vel": eq_vel,
         "prod_e": prod_e,
         "prod_tra": prod_tra,
+        "prod_vel": prod_vel,
+        "snapshot": snapshot,
     }
     if not args.debug:
         create_new_files(save_paths)
-    engine = MDEngine(config, save_paths, args)
+    engine = MDEngine(config)
     engine.initialize()
-    engine.equilibrate()
+    engine.equilibrate(save_paths, 10)
+    from IPython import embed
+
+    embed()
+    engine.production(save_paths)

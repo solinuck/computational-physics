@@ -11,26 +11,15 @@ class MDEngine:
     k_angle = 1
     k_dihedral = 1
 
-    def __init__(self, config, save_paths, parse_args):
+    def __init__(self, config):
         self.d = config["dim"]
         self.n = config["n"]
         self.m = config["m"]
         self.l = config["l"]
         self.tau = config["tau"]
         self.lj = config["pot"]
+        self.debug = config["debug"]
         self.target_temp = config["target_t"]
-        self.eq_e_log = logs.Logging(
-            "eq_e", save_paths["eq_e"], file=not parse_args.debug
-        )
-        self.eq_tra_log = logs.Logging(
-            "eq_tra", save_paths["eq_tra"], console=False, file=not parse_args.debug
-        )
-        self.snap_log = logs.Logging(
-            "snapshot",
-            save_paths["eq_tra"].parent.joinpath(f"snapshot"),
-            console=False,
-            file=True,
-        )
         self.step = -1
 
     def initialize(self):
@@ -41,7 +30,7 @@ class MDEngine:
 
     def initR(self):
         self.r = np.zeros((self.n, 3))
-        x = np.linspace(0, self.l, self.n ** 0.5, endpoint=False)
+        x = np.linspace(0, self.l, int(self.n ** 0.5), endpoint=False)
         x, y = np.meshgrid(x, x)
         self.r[:, :2] = np.vstack((x.flatten(), y.flatten())).T
         self.r += self.l / self.n ** 0.5 / 2
@@ -62,17 +51,26 @@ class MDEngine:
     def totMomentum(self):
         return np.sum(self.m * self.v, axis=0)
 
-    def equilibrate(self):
-        self.eq_e_log.logger.info("")
-        self.eq_e_log.format_log("step", "t", "temp", "ekin", "epot", "etot")
+    def equilibrate(self, save_paths, eq_steps=500):
+        eq_e_log = logs.Logging("eq_e", save_paths["eq_e"], file=not self.debug)
+        eq_tra_log = logs.Logging(
+            "eq_tra", save_paths["eq_tra"], console=False, file=not self.debug
+        )
+        snap_log = logs.Logging(
+            "snapshot", save_paths["snapshot"], console=False, file=True
+        )
+        eq_vel_log = logs.Logging(
+            "eq_vel", save_paths["eq_vel"], console=False, file=not self.debug
+        )
+        eq_e_log.logger.info("")
+        eq_e_log.format_log("step", "t", "temp", "ekin", "epot", "etot")
 
-        eq_steps = 5  # 10000
         for t in np.linspace(0, (eq_steps - 1) * 0.01, eq_steps):
             self.update()
-            if (self.step % 3) == 0:
+            if (self.step % 10) == 0:
                 self.thermostat(self.target_temp)
 
-            self.eq_e_log.format_log(
+            eq_e_log.format_log(
                 self.step,
                 t,
                 self.temp,
@@ -82,16 +80,13 @@ class MDEngine:
                 format_nums=False,
             )
 
-            self.eq_tra_log.logger.info("")
-            self.eq_tra_log.format_log(f"step = {self.step}", f"time = {t}")
-            self.eq_tra_log.format_log("particle", "x", "y", "z")
-            for idx, pos in enumerate(self.r):
-                self.eq_tra_log.format_log(idx, *pos)
+            eq_tra_log.log_r_or_v(self.step, t, self.r)
+            eq_vel_log.log_r_or_v(self.step, t, self.v)
         for pos in self.r:
-            self.snap_log.format_log(*pos)
-        self.snap_log.format_log("@")
+            snap_log.format_log(*pos)
+        snap_log.format_log("@")
         for vel in self.v:
-            self.snap_log.format_log(*vel)
+            snap_log.format_log(*vel)
 
     def update(self, init=False):
         if init:
@@ -130,7 +125,6 @@ class MDEngine:
             # plotter.plot_box(self.r, self.f, self.l, self.step)  # forces
 
             self.epot += self.lj.pot(abs)
-        # if self.step >= 500:
         self.f = np.nan_to_num(self.f)
 
     def toroDist3D(self, v1, v2):
@@ -155,6 +149,11 @@ class MDEngine:
             dx = dx + self.l
 
         return dx
+
+    def production(self, save_paths, production_steps=1000):
+        self.read_snap(save_paths["snapshot"])
+        for step in range(production_steps):
+            self.update()
 
     def read_snap(self, f):
         file_object = open(f, "r")
