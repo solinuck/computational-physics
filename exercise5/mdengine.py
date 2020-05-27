@@ -66,7 +66,7 @@ class MDEngine:
         self.eq_e_log.logger.info("")
         self.eq_e_log.format_log("step", "t", "temp", "ekin", "epot", "etot")
 
-        eq_steps = 10000
+        eq_steps = 5  # 10000
         for t in np.linspace(0, (eq_steps - 1) * 0.01, eq_steps):
             self.update()
             if (self.step % 1) == 0:
@@ -132,6 +132,10 @@ class MDEngine:
             self.epot += self.lj.pot(abs)
 
         self.f = np.nan_to_num(self.f)
+
+        from IPython import embed
+
+        embed()
 
         return self.f
 
