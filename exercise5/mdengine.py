@@ -33,7 +33,7 @@ class MDEngine:
         x = np.linspace(0, self.l, int(self.n ** 0.5), endpoint=False)
         x, y = np.meshgrid(x, x)
         self.r[:, :2] = np.vstack((x.flatten(), y.flatten())).T
-        self.r += self.l / self.n ** 0.5 / 2
+        self.r[:, :2] += self.l / self.n ** 0.5 / 2
 
     def initV(self):
         temp = self.target_temp
@@ -62,7 +62,6 @@ class MDEngine:
         eq_vel_log = logs.Logging(
             "eq_vel", save_paths["eq_vel"], console=False, file=not self.debug
         )
-        eq_e_log.logger.info("")
         eq_e_log.format_log("step", "t", "temp", "ekin", "epot", "etot")
 
         for t in np.linspace(0, (eq_steps - 1) * 0.01, eq_steps):
@@ -118,7 +117,7 @@ class MDEngine:
             # plotter.plot_box(self.r, dxyz, self.l, self.step)  # directions
             # plotter.plot_box(self.r, self.f, self.l, self.step)  # forces
 
-            self.epot += self.lj.pot(abs)
+            self.epot += -self.lj.pot(abs)
         self.f = np.nan_to_num(self.f)
 
         return self.f
