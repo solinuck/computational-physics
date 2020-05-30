@@ -38,3 +38,12 @@ def plot_e_t(
     plt.tight_layout()
     plt.savefig(savepath)
     plt.close()
+
+
+def plot_hist(values, bins, t=150, m=39.9, kb=0.83):
+    n, bins, patches = plt.hist(values, bins=bins, density=True)
+    x = np.linspace(0, 6, 100)
+    fmb = (m / (kb * t)) * x * np.exp(-m * x ** 2 / (2 * kb * t))
+    plt.plot(x, fmb)
+    plt.show()
+    plt.close()

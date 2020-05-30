@@ -38,6 +38,7 @@ class Logging:
         self.logger.info(text)
 
     def log_r_or_v(self, step, t, r_or_v):
+        # self.logger.info("@")
         self.format_log(f"step = {step}", f"time = {t}")
         self.format_log("particle", "x", "y", "z")
         for idx, pos in enumerate(r_or_v):

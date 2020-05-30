@@ -7,6 +7,7 @@ import plotter
 
 parser = argparse.ArgumentParser(description="Analysis")
 parser.add_argument("--density", dest="density", action="store", default=0.07)
+parser.add_argument("--window", dest="window", action="store", default=20)
 args = parser.parse_args()
 
 
@@ -43,7 +44,7 @@ def read_e_and_t(fname):
     return temp, e
 
 
-def read_v_and_r(fname):
+def read_v_and_r_snapshot(fname):
     file_object = open(fname, "r")
     a, b = file_object.read().split("@")
     pos = np.fromstring(a, sep="\t").reshape(-1, 3)
@@ -51,7 +52,32 @@ def read_v_and_r(fname):
     return vel, pos
 
 
-vel, pos = read_v_and_r(save_paths["snapshot"])
+def read_v_and_r_prod(fname):
+    with open(fname) as f:
+        frame = ""
+        for line in f:
+            if not str.isdigit(line[0]):  # skip lines without number
+                continue
+            frame += line
+        values = (
+            np.fromstring(frame, sep="\t").reshape(-1, 4)[:, 1:4].reshape(-1, 100, 3)
+        )
+    return values
+
+
+vs = []
+for i in range(1000 // int(args.window)):
+    v_prod = read_v_and_r_prod(save_paths["prod_vel"])[
+        :: int(args.window)
+    ]  # shape = (1000, 100, 3)
+    average = np.mean(v_prod, axis=0)  # shape = (100, 3)
+    result = np.sum(average ** 2, axis=1) ** 0.5  # shape = (100,)
+    vs.append(result)
+vs = np.array(vs).flatten()
+
+plotter.plot_hist(result, 12)
+
+vel, pos = read_v_and_r_snapshot(save_paths["snapshot"])
 plotter.plot_box(
     pos,
     vel,

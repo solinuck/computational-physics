@@ -2,14 +2,10 @@ import numpy as np
 import itertools
 
 import logs
-import plotter
 
 
 class MDEngine:
     kb = 0.83
-    k_pair = 1
-    k_angle = 1
-    k_dihedral = 1
 
     def __init__(self, config):
         self.d = config["dim"]

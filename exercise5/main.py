@@ -81,5 +81,5 @@ if __name__ == "__main__":
         create_new_files(save_paths, args.new_files)
     engine = MDEngine(config)
     engine.initialize()
-    engine.equilibrate(save_paths, args.eq_runs)
+    # engine.equilibrate(save_paths, args.eq_runs)
     engine.production(save_paths, args.prod_runs)
