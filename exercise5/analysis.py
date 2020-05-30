@@ -6,6 +6,7 @@ import numpy as np
 import plotter
 
 import itertools
+import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description="Analysis")
 parser.add_argument("--density", dest="density", action="store", default=0.07)
@@ -143,9 +144,36 @@ read_r = read_v_and_r_prod(save_paths["prod_tra"])
 f = args.window
 rs = []
 for frame in range(int(f)):
+    r_ = []
     for i1, i2 in itertools.permutations(range(read_r.shape[1]), 2):
         x1 = read_r[frame, i1]
         x2 = read_r[frame, i2]
 
-        rs.append(np.sum(toroDist3D(x1, x2, width) ** 2) ** 0.5)
-plotter.plot_hist(rs, 20)
+        r_.append(np.sum(toroDist3D(x1, x2, width) ** 2) ** 0.5)
+    rs.append(r_)
+
+rs = np.mean(np.array(rs), axis=0)
+
+
+def correlation(data, bins):
+    hist, bin = np.histogram(data, bins)
+    delta_r = bin[1] - bin[0]
+    g = []
+
+    for k in range(bins):
+        gk = hist[k] / (
+            float(args.density) * (100 - 1) * np.pi * (k + 0.5) * delta_r ** 2
+        )
+
+        g.append(gk)
+
+    return g, delta_r
+
+
+c, d = correlation(rs, 100)
+x = np.arange(0, 100) * d
+plt.plot(x, c)
+plt.show()
+from IPython import embed
+
+embed()
