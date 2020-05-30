@@ -151,12 +151,16 @@ for frame in range(int(f)):
 
         r_.append(np.sum(toroDist3D(x1, x2, width) ** 2) ** 0.5)
     rs.append(r_)
-
-rs = np.mean(np.array(rs), axis=0)
+rs = np.array(rs)
 
 
 def correlation(data, bins):
-    hist, bin = np.histogram(data, bins)
+    hists = []
+    for i in range(data.shape[0]):
+        hist, bin = np.histogram(data[i], bins)
+        hists.append(hist)
+    hists = np.array(hists)
+    np.mean(hists, axis=0)
     delta_r = bin[1] - bin[0]
     g = []
 
