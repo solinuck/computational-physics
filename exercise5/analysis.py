@@ -5,9 +5,13 @@ import numpy as np
 
 import plotter
 
+import itertools
+
 parser = argparse.ArgumentParser(description="Analysis")
 parser.add_argument("--density", dest="density", action="store", default=0.07)
 parser.add_argument("--window", dest="window", action="store", default=20)
+
+
 args = parser.parse_args()
 
 
@@ -66,16 +70,15 @@ def read_v_and_r_prod(fname):
 
 
 vs = []
+read_v = read_v_and_r_prod(save_paths["prod_vel"])
 for i in range(1000 // int(args.window)):
-    v_prod = read_v_and_r_prod(save_paths["prod_vel"])[
-        :: int(args.window)
-    ]  # shape = (1000, 100, 3)
+    v_prod = read_v[: i : i + int(args.window)]  # shape = (1000, 100, 3)
     average = np.mean(v_prod, axis=0)  # shape = (100, 3)
     result = np.sum(average ** 2, axis=1) ** 0.5  # shape = (100,)
     vs.append(result)
 vs = np.array(vs).flatten()
 
-plotter.plot_hist(result, 12)
+plotter.plot_hist(vs, 12)
 
 vel, pos = read_v_and_r_snapshot(save_paths["snapshot"])
 plotter.plot_box(
@@ -108,3 +111,43 @@ plotter.plot_e_t(
     xlabel=r"$t[ps]$",
     savepath="results/e_time_d{}.png".format(density),
 )
+
+
+def toroDist3D(v1, v2, l):
+    return np.array(
+        (
+            toroDist1D(v1[0], v2[0], l),
+            toroDist1D(v1[1], v2[1], l),
+            toroDist1D(v1[2], v2[2], l),
+        )
+    )
+
+
+def toroDist1D(x1, x2, l):
+    # get coordinates in initial box
+    x1 = x1 % l
+    x2 = x2 % l
+
+    dx = x2 - x1
+
+    if dx > (l / 2):
+        dx = dx - l
+    elif dx < -(l / 2):
+        dx = dx + l
+
+    return dx
+
+
+width = (int(100) / float(args.density)) ** 0.5
+read_r = read_v_and_r_prod(save_paths["prod_tra"])
+f = args.window
+rs = []
+for frame in range(int(f)):
+    for i1, i2 in itertools.permutations(range(read_r.shape[1]), 2):
+        x1 = read_r[f, i1]
+        x2 = read_r[f, i2]
+        from IPython import embed
+
+        embed()
+
+        rs.append(toroDist3D(x1, x2, width))
