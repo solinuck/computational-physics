@@ -144,10 +144,8 @@ f = args.window
 rs = []
 for frame in range(int(f)):
     for i1, i2 in itertools.permutations(range(read_r.shape[1]), 2):
-        x1 = read_r[f, i1]
-        x2 = read_r[f, i2]
-        from IPython import embed
+        x1 = read_r[frame, i1]
+        x2 = read_r[frame, i2]
 
-        embed()
-
-        rs.append(toroDist3D(x1, x2, width))
+        rs.append(np.sum(toroDist3D(x1, x2, width) ** 2) ** 0.5)
+plotter.plot_hist(rs, 20)
