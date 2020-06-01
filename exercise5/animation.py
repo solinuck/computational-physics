@@ -6,6 +6,7 @@ import plotter
 import matplotlib.animation as anim
 import matplotlib.pyplot as plt
 
+
 parser = argparse.ArgumentParser(description="Analysis")
 parser.add_argument("--density", dest="density", action="store", default=0.07)
 parser.add_argument("--window", dest="window", action="store", default=20)
@@ -16,7 +17,7 @@ args = parser.parse_args()
 if args.eq:
     mode_str = "prod"
 else:
-    mode_str = "eq"
+    mode_str = "equi"
 
 logs = Path("logs")
 density_dir = logs.joinpath(f"d_{args.density}")
@@ -68,8 +69,4 @@ def animate(i):
 
 
 ani = anim.FuncAnimation(fig, animate, interval=1, frames=len(read_r))
-writer = ImageMagickFileWriter()
-ani.save(
-    "results/trajectory_animation_{}_d{}.gif".format(mode_str, args.density),
-    writer=writer,
-)
+ani.save("results/trajectory_animation_{}_d{}.mp4".format(mode_str, args.density),)
