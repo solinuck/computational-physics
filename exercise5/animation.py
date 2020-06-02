@@ -5,6 +5,7 @@ import argparse
 import matplotlib.animation as anim
 import matplotlib.pyplot as plt
 
+
 parser = argparse.ArgumentParser(description="Analysis")
 parser.add_argument("--density", dest="density", action="store", default=0.07)
 parser.add_argument("--window", dest="window", action="store", default=20)
