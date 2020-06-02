@@ -47,3 +47,7 @@ def plot_hist(values, bins, t=150, m=39.9, kb=0.83):
     plt.plot(x, fmb)
     plt.show()
     plt.close()
+
+
+def plot_pair_correlation():
+    pass

@@ -1,41 +1,25 @@
-from pathlib import Path
-import argparse
-
 import numpy as np
-
-import plotter
-
 import itertools
 import matplotlib.pyplot as plt
 
-parser = argparse.ArgumentParser(description="Analysis")
-parser.add_argument("--density", dest="density", action="store", default=0.07)
-parser.add_argument("--window", dest="window", action="store", default=20)
+import utils
+import plotter
 
 
-args = parser.parse_args()
+args = utils.analysisParser()
+if args.eq:
+    mode = "equi"
+else:
+    mode = "prod"
 
 
-logs = Path("logs")
-density_dir = logs.joinpath(f"d_{args.density}")
-eq_e = density_dir.joinpath("equi", "energy", "run.0")
-eq_tra = density_dir.joinpath("equi", "tra", "run.0")
-eq_vel = density_dir.joinpath("equi", "vel", "run.0")
-prod_e = density_dir.joinpath("prod", "energy", "run.0")
-prod_tra = density_dir.joinpath("prod", "tra", "run.0")
-prod_vel = density_dir.joinpath("prod", "vel", "run.0")
-snapshot = density_dir.joinpath("snapshot", "snapshot.0")
+save_paths = utils.createPaths(mode, args.density, args.run_number)
 
-save_paths = {
-    "eq_e": eq_e,
-    "eq_tra": eq_tra,
-    "eq_vel": eq_vel,
-    "prod_e": prod_e,
-    "prod_tra": prod_tra,
-    "prod_vel": prod_vel,
-    "snapshot": snapshot,
-}
-density = density_dir.name.split("_")[1]
+box_width = (int(100) / float(args.density)) ** 0.5
+
+"""
+######################## Functions for reading data ########################
+"""
 
 
 def read_e_and_t(fname):
@@ -57,7 +41,7 @@ def read_v_and_r_snapshot(fname):
     return vel, pos
 
 
-def read_v_and_r_prod(fname):
+def read_v_and_r(fname):
     with open(fname) as f:
         frame = ""
         for line in f:
@@ -70,8 +54,49 @@ def read_v_and_r_prod(fname):
     return values
 
 
+"""
+######################## Task 2.2 ########################
+"""
+temp, e = read_e_and_t(save_paths["e"])
+
+plotter.plot_e_t(
+    temp,
+    tau=0.01,
+    temp=True,
+    title="Temperature over time, d = {}".format(args.density),
+    ylabel=r"$T[K]$",
+    xlabel=r"$t[ps]$",
+    savepath="results/t_time_d{}.png".format(args.density),
+)
+plotter.plot_e_t(
+    e,
+    tau=0.01,
+    title="Energy over time, d = {}".format(args.density),
+    ylabel=r"$E[u \cdot \frac{\AA^2}{ps^2}]$",
+    xlabel=r"$t[ps]$",
+    savepath="results/e_time_d{}.png".format(args.density),
+)
+
+"""
+######################## Task 2.3 ########################
+"""
+
+vel_snap, pos_snap = read_v_and_r_snapshot(save_paths["snapshot"])
+plotter.plot_box(
+    pos_snap,
+    vel_snap,
+    box_width,
+    xlabel=r"$x[\AA]$",
+    ylabel=r"$y[\AA]$",
+    title="position and velocities, snapshot run: {}".format(args.run),
+    savepath="results/snapshot_d{}.png".format(args.density),
+)
+
+"""
+######################## Task 2.4 ########################
+"""
 vs = []
-read_v = read_v_and_r_prod(save_paths["prod_vel"])
+read_v = read_v_and_r(save_paths["vel"])
 for i in range(1000 // int(args.window)):
     v_prod = read_v[: i : i + int(args.window)]  # shape = (1000, 100, 3)
     average = np.mean(v_prod, axis=0)  # shape = (100, 3)
@@ -81,37 +106,9 @@ vs = np.array(vs).flatten()
 
 plotter.plot_hist(vs, 12)
 
-vel, pos = read_v_and_r_snapshot(save_paths["snapshot"])
-plotter.plot_box(
-    pos,
-    vel,
-    (100 / float(args.density)) ** 0.5,
-    xlabel=r"$x[\AA]$",
-    ylabel=r"$y[\AA]$",
-    title="position and velocities, iteration = {}".format(1000),
-    savepath="results/snapshot_after_eq_d{}.png".format(density),
-)
-
-
-temp, e = read_e_and_t(save_paths["eq_e"])
-
-plotter.plot_e_t(
-    temp,
-    tau=0.01,
-    temp=True,
-    title="Temperature over time, d = {}".format(density),
-    ylabel=r"$T[K]$",
-    xlabel=r"$t[ps]$",
-    savepath="results/t_time_d{}.png".format(density),
-)
-plotter.plot_e_t(
-    e,
-    tau=0.01,
-    title="Energy over time, d = {}".format(density),
-    ylabel=r"$E[u \cdot \frac{\AA^2}{ps^2}]$",
-    xlabel=r"$t[ps]$",
-    savepath="results/e_time_d{}.png".format(density),
-)
+"""
+######################## Task 2.5 ########################
+"""
 
 
 def toroDist3D(v1, v2, l):
@@ -139,21 +136,6 @@ def toroDist1D(x1, x2, l):
     return dx
 
 
-width = (int(100) / float(args.density)) ** 0.5
-read_r = read_v_and_r_prod(save_paths["prod_tra"])
-f = args.window
-rs = []
-for frame in range(int(f)):
-    r_ = []
-    for i1, i2 in itertools.permutations(range(read_r.shape[1]), 2):
-        x1 = read_r[frame, i1]
-        x2 = read_r[frame, i2]
-
-        r_.append(np.sum(toroDist3D(x1, x2, width) ** 2) ** 0.5)
-    rs.append(r_)
-rs = np.array(rs)
-
-
 def correlation(data, bins):
     hists = []
     for i in range(data.shape[0]):
@@ -174,10 +156,22 @@ def correlation(data, bins):
     return g, delta_r
 
 
+read_r = read_v_and_r(save_paths["tra"])
+rs = []
+for frame in range(int(args.window)):
+    r_ = []
+    for i1, i2 in itertools.permutations(range(read_r.shape[1]), 2):
+        x1 = read_r[frame, i1]
+        x2 = read_r[frame, i2]
+
+        r_.append(np.sum(toroDist3D(x1, x2, box_width) ** 2) ** 0.5)
+    rs.append(r_)
+rs = np.array(rs)
+
+
 c, d = correlation(rs, 100)
+
+# plotter.plot_pair_correlation()
 x = np.arange(0, 100) * d
 plt.plot(x, c)
 plt.show()
-from IPython import embed
-
-embed()

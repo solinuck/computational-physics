@@ -2,21 +2,20 @@ import numpy as np
 from pathlib import Path
 import argparse
 
-import plotter
 import matplotlib.animation as anim
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description="Analysis")
 parser.add_argument("--density", dest="density", action="store", default=0.07)
 parser.add_argument("--window", dest="window", action="store", default=20)
-parser.add_argument("--eq", dest="eq", action="store_true", default=False)
+parser.add_argument("--eq_true", dest="eq", action="store_true", default=False)
 
 args = parser.parse_args()
 
 if args.eq:
-    mode_str = "prod"
+    mode_str = "equi"
 else:
-    mode_str = "eq"
+    mode_str = "prod"
 
 logs = Path("logs")
 density_dir = logs.joinpath(f"d_{args.density}")
@@ -45,6 +44,10 @@ read_r = read_v_and_r_prod(save_paths["tra"])
 read_v = read_v_and_r_prod(save_paths["vel"])
 
 
+plt.rcParams[
+    "animation.convert_path"
+] = "/usr/local/Cellar/imagemagick/7.0.10-15/bin/magick"
+
 fig = plt.figure()
 
 
@@ -64,11 +67,12 @@ def plot(r, vec, l):
 
 def animate(i):
     plt.clf()
-    plot(read_r[i * 2], read_v[i * 2], (100 / float(args.density)) ** 0.5)
+    if (i * 4) < 1000:
+        plot(read_r[i * 4], read_v[i * 4], (100 / float(args.density)) ** 0.5)
 
 
-ani = anim.FuncAnimation(fig, animate, interval=1, frames=len(read_r))
-writer = ImageMagickFileWriter()
+ani = anim.FuncAnimation(fig, animate, interval=1, frames=len(read_r) // 4)
+writer = anim.ImageMagickFileWriter()
 ani.save(
     "results/trajectory_animation_{}_d{}.gif".format(mode_str, args.density),
     writer=writer,

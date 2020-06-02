@@ -103,20 +103,13 @@ class MDEngine:
             p1, p2 = self.r[i1], self.r[i2]
 
             dxyz = self.toroDist3D(p1, p2)
-
             abs = np.sum(dxyz ** 2) ** 0.5
             direction = dxyz / abs
+
             self.f[i1] += -direction * self.lj.force(abs)
-
-            # plotter.plot_box(self.r, self.v, self.l, self.step)  # velocities
-            # plotter.plot_box(self.r, dxyz / abs, self.l, self.step)  # einheits
-            # plotter.plot_box(self.r, dxyz, self.l, self.step)  # directions
-            # plotter.plot_box(self.r, self.f, self.l, self.step)  # forces
-
             self.epot += -self.lj.pot(abs)
-        self.f = np.nan_to_num(self.f)
 
-        return self.f
+        self.f = np.nan_to_num(self.f)
 
     def toroDist3D(self, v1, v2):
         return np.array(
