@@ -13,51 +13,15 @@ else:
     mode = "prod"
 
 
-save_paths = utils.createPaths(mode, args.density, args.run_number)
+save_paths = utils.createPaths(mode, args.density, args.run)
 
 box_width = (int(100) / float(args.density)) ** 0.5
-
-"""
-######################## Functions for reading data ########################
-"""
-
-
-def read_e_and_t(fname):
-    e = []
-    temp = []
-    with open(fname) as f:
-        next(f)
-        for line in f:
-            temp.append(np.fromstring(line, sep="\t")[2])
-            e.append(np.fromstring(line, sep="\t")[5])
-    return temp, e
-
-
-def read_v_and_r_snapshot(fname):
-    file_object = open(fname, "r")
-    a, b = file_object.read().split("@")
-    pos = np.fromstring(a, sep="\t").reshape(-1, 3)
-    vel = np.fromstring(b, sep="\t").reshape(-1, 3)
-    return vel, pos
-
-
-def read_v_and_r(fname):
-    with open(fname) as f:
-        frame = ""
-        for line in f:
-            if not str.isdigit(line[0]):  # skip lines without number
-                continue
-            frame += line
-        values = (
-            np.fromstring(frame, sep="\t").reshape(-1, 4)[:, 1:4].reshape(-1, 100, 3)
-        )
-    return values
 
 
 """
 ######################## Task 2.2 ########################
 """
-temp, e = read_e_and_t(save_paths["e"])
+temp, e = utils.read_e_and_t(save_paths["e"])
 
 plotter.plot_e_t(
     temp,
@@ -66,7 +30,7 @@ plotter.plot_e_t(
     title="Temperature over time, d = {}".format(args.density),
     ylabel=r"$T[K]$",
     xlabel=r"$t[ps]$",
-    savepath="results/t_time_d{}.png".format(args.density),
+    savepath="results/t_time_{}_d{}.png".format(mode, args.density),
 )
 plotter.plot_e_t(
     e,
@@ -74,14 +38,14 @@ plotter.plot_e_t(
     title="Energy over time, d = {}".format(args.density),
     ylabel=r"$E[u \cdot \frac{\AA^2}{ps^2}]$",
     xlabel=r"$t[ps]$",
-    savepath="results/e_time_d{}.png".format(args.density),
+    savepath="results/e_time_{}_d{}.png".format(mode, args.density),
 )
 
 """
 ######################## Task 2.3 ########################
 """
 
-vel_snap, pos_snap = read_v_and_r_snapshot(save_paths["snapshot"])
+vel_snap, pos_snap = utils.read_v_and_r_snapshot(save_paths["snapshot"])
 plotter.plot_box(
     pos_snap,
     vel_snap,
@@ -96,7 +60,7 @@ plotter.plot_box(
 ######################## Task 2.4 ########################
 """
 vs = []
-read_v = read_v_and_r(save_paths["vel"])
+read_v = utils.read_v_and_r(save_paths["vel"])
 for i in range(1000 // int(args.window)):
     v_prod = read_v[: i : i + int(args.window)]  # shape = (1000, 100, 3)
     average = np.mean(v_prod, axis=0)  # shape = (100, 3)
@@ -156,7 +120,7 @@ def correlation(data, bins):
     return g, delta_r
 
 
-read_r = read_v_and_r(save_paths["tra"])
+read_r = utils.read_v_and_r(save_paths["tra"])
 rs = []
 for frame in range(int(args.window)):
     r_ = []

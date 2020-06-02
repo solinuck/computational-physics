@@ -46,6 +46,6 @@ if __name__ == "__main__":
 
     if args.eq:
         engine.initialize()
-        engine.equilibrate(save_paths, args.eq_runs)
+        engine.equilibrate(save_paths, thermo_coupling=10, eq_steps=args.eq_runs)
     else:
         engine.production(save_paths, args.prod_runs)
