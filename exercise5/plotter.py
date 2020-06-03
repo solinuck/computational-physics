@@ -31,23 +31,38 @@ def plot_e_t(
     y = e_t
     plt.plot(x, y)
     if temp:
-        plt.hlines(150, 0, 10, color="red")
+        plt.hlines(150, 0, steps * tau, color="red", label="Target temperatur")
+        plt.legend()
+    plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.title(title)
+    plt.grid()
     plt.tight_layout()
     plt.savefig(savepath)
     plt.close()
 
 
-def plot_hist(values, bins, t=150, m=39.9, kb=0.83):
-    n, bins, patches = plt.hist(values, bins=bins, density=True)
-    x = np.linspace(0, 6, 100)
+def plot_hist(
+    values, bins, t=150, m=39.9, kb=0.83, title="", ylabel="", xlabel="", savepath=""
+):
+    n, bins, patches = plt.hist(values, bins=bins, density=True, label="data")
+    x = np.linspace(0, 7, 100)
     fmb = (m / (kb * t)) * x * np.exp(-m * x ** 2 / (2 * kb * t))
-    plt.plot(x, fmb)
-    plt.show()
+    plt.plot(x, fmb, label="Maxwell-Boltzmann distribution")
+    plt.legend()
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.savefig(savepath)
     plt.close()
 
 
-def plot_pair_correlation():
-    pass
+def plot_pair_correlation(g, delta_r, title="", ylabel="", xlabel="", savepath=""):
+    x = np.arange(0, len(g)) * delta_r
+    plt.plot(x, g)
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.grid()
+    plt.savefig(savepath)
+    plt.close()

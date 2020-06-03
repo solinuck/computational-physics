@@ -17,7 +17,7 @@ def mainParser():
     parser.add_argument(
         "--new_files", dest="new_files", action="store_true", default=False
     )
-    parser.add_argument("--eq_runs", dest="eq_runs", action="store", default=500)
+    parser.add_argument("--eq_runs", dest="eq_runs", action="store", default=1000)
     parser.add_argument("--prod_runs", dest="prod_runs", action="store", default=1000)
     parser.add_argument("--density", dest="density", action="store", default=0.07)
     parser.add_argument("--eq_true", dest="eq", action="store_true", default=False)
@@ -52,8 +52,8 @@ def createPaths(mode, density, run_number=0):
     return save_paths
 
 
-def createDirsAndFiles(save_paths, new_files=False):
-    Path("results").mkdir(parents=True, exist_ok=True)
+def createDirsAndFiles(save_paths, density, mode, new_files=False):
+    Path("results/d_{}".format(density)).mkdir(parents=True, exist_ok=True)
     for key in save_paths:
         dir = save_paths[key].parent
         dir.mkdir(parents=True, exist_ok=True)
@@ -65,8 +65,11 @@ def createDirsAndFiles(save_paths, new_files=False):
                     "{}.{}".format(save_paths[key].stem, run)
                 )
         else:
-            if save_paths[key].exists() and save_paths[key].stem != "snapshot":
+            if save_paths[key].exists() and mode == "equi":
                 save_paths[key].unlink()
+            if save_paths[key].exists() and mode == "prod":
+                if key != "snapshot":
+                    save_paths[key].unlink()
 
 
 def create_logger(save_paths, write_file):
@@ -103,7 +106,7 @@ def read_v_and_r_snapshot(fname):
     return vel, pos
 
 
-def read_v_and_r(fname):
+def read_v_or_r(fname):
     with open(fname) as f:
         frame = ""
         for line in f:

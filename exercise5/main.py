@@ -25,7 +25,9 @@ if __name__ == "__main__":
     save_paths = utils.createPaths(mode, args.density)
 
     if not args.debug:
-        utils.createDirsAndFiles(save_paths, args.new_files)
+        utils.createDirsAndFiles(
+            save_paths, args.density, mode, new_files=args.new_files
+        )
 
     """
     Engine
@@ -46,6 +48,6 @@ if __name__ == "__main__":
 
     if args.eq:
         engine.initialize()
-        engine.equilibrate(save_paths, thermo_coupling=10, eq_steps=args.eq_runs)
+        engine.equilibrate(save_paths, thermo_coupling=10, eq_steps=int(args.eq_runs))
     else:
-        engine.production(save_paths, args.prod_runs)
+        engine.production(save_paths, int(args.prod_runs))

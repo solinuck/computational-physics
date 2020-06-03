@@ -1,16 +1,19 @@
 import numpy as np
 import itertools
-import matplotlib.pyplot as plt
 
 import utils
 import plotter
+
+import matplotlib.pyplot as plt
 
 
 args = utils.analysisParser()
 if args.eq:
     mode = "equi"
+    mode_full = "equilibration"
 else:
     mode = "prod"
+    mode_full = "production"
 
 
 save_paths = utils.createPaths(mode, args.density, args.run)
@@ -27,18 +30,18 @@ plotter.plot_e_t(
     temp,
     tau=0.01,
     temp=True,
-    title="Temperature over time, d = {}".format(args.density),
+    title="Temperature over time, d = {}, {}".format(args.density, mode_full),
     ylabel=r"$T[K]$",
     xlabel=r"$t[ps]$",
-    savepath="results/t_time_{}_d{}.png".format(mode, args.density),
+    savepath="results/d_{}/t_time_{}.png".format(args.density, mode),
 )
 plotter.plot_e_t(
     e,
     tau=0.01,
-    title="Energy over time, d = {}".format(args.density),
+    title="Energy over time, d = {}, {}".format(args.density, mode_full),
     ylabel=r"$E[u \cdot \frac{\AA^2}{ps^2}]$",
     xlabel=r"$t[ps]$",
-    savepath="results/e_time_{}_d{}.png".format(mode, args.density),
+    savepath="results/d_{}/e_time_{}.png".format(args.density, mode),
 )
 
 """
@@ -52,23 +55,30 @@ plotter.plot_box(
     box_width,
     xlabel=r"$x[\AA]$",
     ylabel=r"$y[\AA]$",
-    title="position and velocities, snapshot run: {}".format(args.run),
-    savepath="results/snapshot_d{}.png".format(args.density),
+    title="position and velocities, d = {}".format(args.density),
+    savepath="results/d_{}/snapshot.png".format(args.density),
 )
 
 """
 ######################## Task 2.4 ########################
 """
-vs = []
-read_v = utils.read_v_and_r(save_paths["vel"])
-for i in range(1000 // int(args.window)):
-    v_prod = read_v[: i : i + int(args.window)]  # shape = (1000, 100, 3)
-    average = np.mean(v_prod, axis=0)  # shape = (100, 3)
-    result = np.sum(average ** 2, axis=1) ** 0.5  # shape = (100,)
-    vs.append(result)
-vs = np.array(vs).flatten()
+if mode == "prod":
+    read_v = utils.read_v_or_r(save_paths["vel"])
 
-plotter.plot_hist(vs, 12)
+    v_prod = read_v[0 : int(args.window)]
+    v_prod = v_prod.reshape(int(args.window) * 100, 3)
+    result = np.sum(v_prod ** 2, axis=1) ** 0.5
+
+    plotter.plot_hist(
+        result,
+        bins=50,
+        title="velocity distribution, d = {}, #frames = {}".format(
+            args.density, args.window
+        ),
+        ylabel="# normed",
+        xlabel=r"$|\vec{v}[\AA/ps]|$",
+        savepath="results/d_{}/v_distribution".format(args.density),
+    )
 
 """
 ######################## Task 2.5 ########################
@@ -120,22 +130,26 @@ def correlation(data, bins):
     return g, delta_r
 
 
-read_r = utils.read_v_and_r(save_paths["tra"])
-rs = []
-for frame in range(int(args.window)):
-    r_ = []
-    for i1, i2 in itertools.permutations(range(read_r.shape[1]), 2):
-        x1 = read_r[frame, i1]
-        x2 = read_r[frame, i2]
+if mode == "prod":
+    read_r = utils.read_v_or_r(save_paths["tra"])
+    rs = []
+    for frame in range(int(args.window)):
+        r_ = []
+        for i1, i2 in itertools.permutations(range(read_r.shape[1]), 2):
+            x1 = read_r[frame, i1]
+            x2 = read_r[frame, i2]
 
-        r_.append(np.sum(toroDist3D(x1, x2, box_width) ** 2) ** 0.5)
-    rs.append(r_)
-rs = np.array(rs)
+            r_.append(np.sum(toroDist3D(x1, x2, box_width) ** 2) ** 0.5)
+        rs.append(r_)
+    rs = np.array(rs)
 
+    g, delta_r = correlation(rs, 100)
 
-c, d = correlation(rs, 100)
-
-# plotter.plot_pair_correlation()
-x = np.arange(0, 100) * d
-plt.plot(x, c)
-plt.show()
+    plotter.plot_pair_correlation(
+        g,
+        delta_r,
+        title="Pair correlation function, d = {}".format(args.density),
+        ylabel="g(r)",
+        xlabel=r"$r[\AA]$",
+        savepath="results/d_{}/pair_correlation".format(args.density),
+    )
