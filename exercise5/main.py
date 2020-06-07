@@ -15,6 +15,12 @@ class lennardJones:
 
 
 if __name__ == "__main__":
+    """
+    --eq_true for equilibration
+    --new_files for not overwriting old files
+    --eq_steps number of equilibration steps
+    --prod_steps number of production steps
+    """
     args = utils.mainParser()
 
     if args.eq:
