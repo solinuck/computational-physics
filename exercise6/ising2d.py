@@ -47,7 +47,7 @@ def calc_average(n_samples, f):
 random_seed = 1
 np.random.seed(random_seed)
 ts = np.arange(0.2, 4.2, 0.2)
-n_samples = [10, 10000]
+n_samples = [1000, 10000]
 n_spins = [10, 50, 100]
 mode = "2D"
 
@@ -95,11 +95,12 @@ for (n_spin, n_sample) in itertools.product(n_spins, n_samples):
         else:
             m_theory = 0
 
-        u_mc = calc_average(n_sample, energies) / n_spin ** 2
-        c_mc = beta ** 2 * (
-            calc_average(n_sample, energies ** 2) / n_spin ** 2 - u_mc ** 2
-        )
-        m_mc = calc_average(n_sample, spin_sums) / n_spin ** 2
+        u_mcN = calc_average(n_sample, energies)
+        c_mcN = beta ** 2 * (calc_average(n_sample, energies ** 2) - u_mcN ** 2)
+        m_mc = calc_average(n_sample, spin_sums) ** 2 / n_spin ** 2
+
+        u_mc = u_mcN / n_spin ** 2
+        c_mc = c_mcN / n_spin ** 2
 
         u_acc = np.abs(u_theory - u_mc) / np.abs(u_theory)
 

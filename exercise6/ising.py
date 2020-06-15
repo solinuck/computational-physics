@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import Path
 import itertools
-
+from IPython import embed
 from logs import Logging
 
 
@@ -47,7 +47,7 @@ random_seed = 1
 np.random.seed(random_seed)
 ts = np.arange(0.2, 4.2, 0.2)
 n_samples = [1000, 10000]
-n_spins = [10, 100]
+n_spins = [10, 50, 100]
 mode = "1D"
 
 logs = Path("logs")
@@ -75,18 +75,25 @@ for (n_spin, n_sample) in itertools.product(n_spins, n_samples):
     loggers[log_name].format_log("T", "beta", "U_MC", "C_MC", "U_THEO", "C_THEO", "acc")
     for t in ts:
         beta = 1 / t
-
         energies = np.array([mmc(n_spin, beta) for n in range(n_sample)])
 
         u_theory = -(n_spin - 1) / n_spin * np.tanh(beta)
         c_theory = (n_spin - 1) / n_spin * (beta / np.cosh(beta)) ** 2
 
-        u_mc = calc_average(n_sample, energies) / n_spin
-        c_mc = beta ** 2 * (calc_average(n_sample, energies ** 2) / n_spin - u_mc ** 2)
-
+        u_mcN = calc_average(n_sample, energies)
+        c_mcN = beta ** 2 * (calc_average(n_sample, energies ** 2) - u_mcN ** 2)
+        u_mc = u_mcN / n_spin
+        c_mc = c_mcN / n_spin
         u_acc = np.abs(u_theory - u_mc) / np.abs(u_theory)
 
         loggers[log_name].format_log(
-            np.round(t, 2), u_mc, c_mc, u_theory, c_theory, u_acc, format_nums=True
+            np.round(t, 2),
+            beta,
+            u_mc,
+            c_mc,
+            u_theory,
+            c_theory,
+            u_acc,
+            format_nums=True,
         )
     loggers[log_name].logger.info("")
