@@ -91,7 +91,7 @@ for (n_spin, n_sample) in itertools.product(n_spins, n_samples):
         u_theory = -(n_spin ** 2 - 1) / n_spin ** 2 * np.tanh(beta)
         c_theory = (n_spin ** 2 - 1) / n_spin ** 2 * (beta / np.cosh(beta)) ** 2
         if t < tc:
-            m_theory = (1 - np.sinh(2 * beta) ** -4) ** (1 / 8) / n_spin ** 2
+            m_theory = (1 - np.sinh(2 * beta) ** -4) ** (1 / 8)
         else:
             m_theory = 0
 
