@@ -52,7 +52,7 @@ n_spins = [10, 50, 100]
 mode = "2D"
 
 
-logs = Path("logs")
+logs = Path("logs_")
 
 dirs = [
     logs.joinpath(mode, f"n_{n_spin}", f"ns_{n_sample}")
@@ -87,7 +87,9 @@ for (n_spin, n_sample) in itertools.product(n_spins, n_samples):
 
         energies = result[:, 0]
         spin_sums = result[:, 1]
+        from IPython import embed
 
+        embed()
         u_theory = -(n_spin ** 2 - 1) / n_spin ** 2 * np.tanh(beta)
         c_theory = (n_spin ** 2 - 1) / n_spin ** 2 * (beta / np.cosh(beta)) ** 2
         if t < tc:

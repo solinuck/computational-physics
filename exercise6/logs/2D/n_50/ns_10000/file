@@ -1,0 +1,3 @@
+n_spins = 50, n_samples = 10000
+T		beta		U_MC		C_MC		M_MC		U_THEO		C_THEO		M_THEO		acc
+0.20		5.00		-0.78		-3.9e+04		0.00		-1.00		0.00		1.00		0.22

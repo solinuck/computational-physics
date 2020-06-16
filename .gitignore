@@ -2,5 +2,5 @@
 anim
 __pycache__/
 *.pyc
-logs
+logs_
 results
