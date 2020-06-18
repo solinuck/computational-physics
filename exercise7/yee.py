@@ -8,7 +8,7 @@ class EMgrid:
         self.lamb = 1
         self.grid = 50
         self.delta = self.lamb / self.grid
-        self.temp_res = self.delta * 0.9
+        self.tau = self.delta * 0.9
         self.lattice = 5000 + 1  # one extra bin
         self.length = 100
         self.f = 1
@@ -35,10 +35,12 @@ class EMgrid:
             1,
         )
 
-        self.A = np.zeros(self.lattice - 1)
-        self.B = np.zeros(self.lattice - 1)
-        self.C = np.zeros(self.lattice)
-        self.D = np.zeros(self.lattice)
+        self.A = (1 - sigma_star * self.tau / 2) / (1 + sigma_star * self.tau / 2)
+        self.B = self.tau / (1 + sigma_star * self.tau / 2)
+        self.C = (1 - sigma * self.tau / (2 * epsilon)) / (
+            1 + sigma * self.tau / (2 * epsilon)
+        )
+        self.D = (self.tau / epsilon) / (1 + sigma * self.tau / (2 * epsilon))
 
     def source(self, t):
         return np.sin(2 * np.pi * t * self.f) * np.exp(-(((t - 30) / 20) ** 2))
