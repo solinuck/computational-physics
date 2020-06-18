@@ -9,8 +9,8 @@ class EMgrid:
         self.grid = 50
         self.delta = self.lamb / self.grid
         self.tau = self.delta * 0.9
-        self.lattice = 5000 + 1  # one extra bin
         self.length = 100
+        self.lattice = self.length * self.grid + 1  # one extra bin
         self.f = 1
         self.omega = 2 * np.pi
         self.steps = 10000
