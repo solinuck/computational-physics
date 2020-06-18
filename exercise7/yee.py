@@ -35,8 +35,6 @@ class EMgrid:
             1,
         )
 
-        self.sigma[0 : (6 * self.grid) + 1] = 1
-        self.sigma[-(6 * self.grid) :] = 1
         self.A = np.zeros(self.lattice - 1)
         self.B = np.zeros(self.lattice - 1)
         self.C = np.zeros(self.lattice)
