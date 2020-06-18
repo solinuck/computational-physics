@@ -22,11 +22,11 @@ class EMgrid:
         self.H = np.zeros(self.lattice - 1)  # explained on slide 15
 
         # physical fields at actual coordinates
-        Ex = range(self.lattice) * self.delta
-        Hx = range(self.lattice - 1) * self.delta + 0.5
+        Ex = np.arange(self.lattice) * self.delta
+        Hx = np.arange(self.lattice - 1) * self.delta + 0.5
 
         sigma = np.where(np.logical_or(Ex <= 6, self.length - 6 <= Ex), 1, 0)
-        sigma_star = np.where(np.logical_or(Hx <= 6 or self.length - 6 <= Hx), 1, 0)
+        sigma_star = np.where(np.logical_or(Hx <= 6, self.length - 6 <= Hx), 1, 0)
         epsilon = np.where(
             np.logical_and(
                 self.length / 2 <= Ex, Ex < self.length / 2 + self.thickness
@@ -34,13 +34,15 @@ class EMgrid:
             self.n ** 2,
             1,
         )
-
         self.A = (1 - sigma_star * self.tau / 2) / (1 + sigma_star * self.tau / 2)
         self.B = self.tau / (1 + sigma_star * self.tau / 2)
         self.C = (1 - sigma * self.tau / (2 * epsilon)) / (
             1 + sigma * self.tau / (2 * epsilon)
         )
         self.D = (self.tau / epsilon) / (1 + sigma * self.tau / (2 * epsilon))
+        from IPython import embed
+
+        embed()
 
     def source(self, t):
         return np.sin(2 * np.pi * t * self.f) * np.exp(-(((t - 30) / 20) ** 2))
@@ -89,3 +91,6 @@ class EMgrid:
 sim = EMgrid()
 
 sim.plot()
+from IPython import embed
+
+embed()
