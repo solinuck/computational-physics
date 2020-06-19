@@ -75,8 +75,10 @@ class EMgrid:
             if create_anim:
                 if n % frame_delta == 0:
                     self.plot(f"plots_{self.thickness}_{self.tau_factor}/{n}.png")
+            if n == 2000:
+                self.snap1 = self.e.copy()
             if n == 4600:
-                self.snap = self.e.copy()
+                self.snap2 = self.e.copy()
 
     def plot_boundary(self):
         plt.axvspan(0, 6 * self.lamb * self.grid, alpha=0.5, color="grey")
@@ -87,9 +89,13 @@ class EMgrid:
             color="grey",
         )
 
-    @staticmethod
-    def plot_material(start, stop):
-        plt.axvspan(start, stop, alpha=0.5, color="green")
+    def plot_material(self):
+        plt.axvspan(
+            self.lattice / 2,
+            self.lattice / 2 + self.grid * self.thickness,
+            alpha=0.5,
+            color="green",
+        )
 
     def plot_E(self):
         plt.plot(self.e, color="blue")
@@ -98,9 +104,9 @@ class EMgrid:
         plt.clf()
         plt.grid()
         self.plot_boundary()
-        self.plot_material(self.lattice / 2, self.lattice / 2 + self.grid)
+        self.plot_material()
         self.plot_E()
-        plt.title(f"t = {self.t}, tau = {self.tau_factor}")
+        plt.title(f"t = {self.t:.2f}, tau = {self.tau_factor}")
         plt.ylabel("E")
         plt.ylim(-0.02, 0.02)
         plt.xlabel("x")
@@ -108,12 +114,12 @@ class EMgrid:
         plt.savefig(fname)
 
 
-sim = EMgrid(2, 1.05)
+sim = EMgrid(50, 0.9)
 
 sim.simulate()
 
-reflected = np.max(sim.snap[:2500])
-incident = np.max(sim.snap)
+incident = np.max(sim.snap1)
+reflected = np.max(sim.snap2[:2500])
 
 r = reflected ** 2 / incident ** 2
 
