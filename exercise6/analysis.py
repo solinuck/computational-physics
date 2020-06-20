@@ -1,4 +1,5 @@
-from IPython import embed
+# -*- coding: utf-8 -*-
+
 import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np

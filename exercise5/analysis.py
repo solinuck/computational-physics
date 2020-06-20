@@ -1,11 +1,10 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import itertools
 
 import utils
 import plotter
-
-import matplotlib.pyplot as plt
-
 
 args = utils.analysisParser()
 if args.eq:

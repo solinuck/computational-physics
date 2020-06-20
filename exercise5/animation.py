@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 from pathlib import Path
 import argparse
@@ -35,9 +37,7 @@ def read_v_and_r_prod(fname):
             if not str.isdigit(line[0]):  # skip lines without number
                 continue
             frame += line
-        values = (
-            np.fromstring(frame, sep="\t").reshape(-1, 4)[:, 1:4].reshape(-1, 100, 3)
-        )
+        values = np.fromstring(frame, sep="\t").reshape(-1, 4)[:, 1:4].reshape(-1, 100, 3)
     return values
 
 

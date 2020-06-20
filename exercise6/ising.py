@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 from pathlib import Path
 import itertools
-from IPython import embed
 from logs import Logging
 
 
@@ -87,13 +88,6 @@ for (n_spin, n_sample) in itertools.product(n_spins, n_samples):
         u_acc = np.abs(u_theory - u_mc) / np.abs(u_theory)
 
         loggers[log_name].format_log(
-            np.round(t, 2),
-            beta,
-            u_mc,
-            c_mc,
-            u_theory,
-            c_theory,
-            u_acc,
-            format_nums=True,
+            np.round(t, 2), beta, u_mc, c_mc, u_theory, c_theory, u_acc, format_nums=True
         )
     loggers[log_name].logger.info("")

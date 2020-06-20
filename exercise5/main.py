@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import utils
 from mdengine import MDEngine
 
@@ -31,9 +33,7 @@ if __name__ == "__main__":
     save_paths = utils.createPaths(mode, args.density)
 
     if not args.debug:
-        utils.createDirsAndFiles(
-            save_paths, args.density, mode, new_files=args.new_files
-        )
+        utils.createDirsAndFiles(save_paths, args.density, mode, new_files=args.new_files)
 
     """
     Engine

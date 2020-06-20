@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import argparse
 from pathlib import Path
 import numpy as np
@@ -61,9 +63,7 @@ def createDirsAndFiles(save_paths, density, mode, new_files=False):
             run = 0
             while save_paths[key].exists():
                 run += 1
-                save_paths[key] = dir.joinpath(
-                    "{}.{}".format(save_paths[key].stem, run)
-                )
+                save_paths[key] = dir.joinpath("{}.{}".format(save_paths[key].stem, run))
         else:
             if save_paths[key].exists() and mode == "equi":
                 save_paths[key].unlink()
@@ -113,7 +113,5 @@ def read_v_or_r(fname):
             if not str.isdigit(line[0]):  # skip lines without number
                 continue
             frame += line
-        values = (
-            np.fromstring(frame, sep="\t").reshape(-1, 4)[:, 1:4].reshape(-1, 100, 3)
-        )
+        values = np.fromstring(frame, sep="\t").reshape(-1, 4)[:, 1:4].reshape(-1, 100, 3)
     return values

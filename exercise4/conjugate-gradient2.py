@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -79,9 +81,7 @@ def plot3D(phi, title, savename, nx=81, ny=81):
     ax = fig.gca(projection="3d")
 
     plt.title(title)
-    surf = ax.plot_surface(
-        xx, yy, phi, cmap=cm.coolwarm, linewidth=0, antialiased=False
-    )
+    surf = ax.plot_surface(xx, yy, phi, cmap=cm.coolwarm, linewidth=0, antialiased=False)
 
     fig.colorbar(surf, shrink=0.5, aspect=5)
     plt.savefig("{}.png".format(savename))
