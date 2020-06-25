@@ -35,7 +35,9 @@ class EMgrid:
             np.logical_or(hx <= 6 * self.lamb, self.length - 6 * self.lamb <= hx), 1, 0
         )
         epsilon = np.where(
-            np.logical_and(self.length / 2 <= ex, ex < self.length / 2 + self.thickness),
+            np.logical_and(
+                self.length / 2 <= ex, ex < self.length / 2 + self.thickness
+            ),
             self.n ** 2,
             1,
         )
@@ -66,7 +68,9 @@ class EMgrid:
         )
         self.e[self.source_pos] += -self.source(self.t) * self.d[self.source_pos]
         self.h = (
-            self.b / self.delta * (self.e[1 : self.lattice] - self.e[: self.lattice - 1])
+            self.b
+            / self.delta
+            * (self.e[1 : self.lattice] - self.e[: self.lattice - 1])
             + self.a * self.h
         )
         self.t += self.tau
