@@ -2,14 +2,13 @@ import numpy as np
 from IPython import embed
 import matplotlib.pyplot as plt
 
-plt.style.use(["seaborn-colorblind"])
-
 
 class NMR:
-    def __init__(self, t, B, rT1, rT2, M0):
+    def __init__(self, t, B, rT1, rT2, M0, phi=0):
         self.B_func = B
         self.n = t
         self.tau = 4 / self.n
+        self.phi = phi
         self.t = np.arange(self.n)
         self.M = np.zeros((self.n + 1, 3))
         self.M[0] = M0
@@ -19,7 +18,7 @@ class NMR:
         self.make_B()
 
     def make_B(self):
-        B_vec = self.B_func(self.t * self.tau + self.tau / 2)
+        B_vec = self.B_func(self.t * self.tau + self.tau / 2, self.phi)
         Omega2 = np.sum(B_vec * B_vec, axis=-1)
         Omega = np.sqrt(Omega2)
         cos = np.cos(self.tau * Omega)
@@ -59,19 +58,25 @@ class NMR:
             self.M[i + 1] = self.C @ self.B[i] @ self.C @ self.M[i]
 
 
-def B_field(t):
+def B_field(t, phi):
     B0 = 8 * np.pi
     h = np.pi / 2
     return np.array(
-        [h * np.cos(B0 * t), -h * np.sin(B0 * t), B0 * np.ones_like(t)]
+        [
+            h * np.cos(B0 * t + phi),
+            -h * np.sin(B0 * t + phi),
+            B0 * np.ones_like(t),
+        ]
     ).T
 
 
-f = NMR(1000, B_field, 0, 1, [0, 1, 0])
+f = NMR(1000, B_field, 0, 1, [1, 0, 0], phi=np.pi / 4)
 f.run()
 
-plt.plot(f.M[:, 0], label="x")
-plt.plot(f.M[:, 1], label="y")
-plt.plot(f.M[:, 2], label="z")
+plt.grid()
+
+plt.plot(f.M[:, 0], label=r"$M^x$")
+plt.plot(f.M[:, 1], label=r"$M^y$")
+plt.plot(f.M[:, 2], label=r"$M^z$")
 plt.legend()
 plt.show()
