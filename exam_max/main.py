@@ -1,6 +1,5 @@
-from IPython import embed
 import numpy as np
-from scipy.sparse import block_diag, diags
+from scipy.sparse import block_diag
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
@@ -92,7 +91,6 @@ class cismon:
                     )
                     for i in range(int((self.dim) / 2))
                 ],
-                format="csr",
             )
             expK2_2 = block_diag(
                 [1]
@@ -106,7 +104,6 @@ class cismon:
                     for i in range(1, int((self.dim) / 2))
                 ]
                 + [1],
-                format="csr",
             )
             yield (expK1_2 @ expK2_2 @ self.exptrans @ expK2_2 @ expK1_2)
 
@@ -134,6 +131,6 @@ class cismon:
 
 
 init_state = np.array([1, 1]) / np.sqrt(2)
-a = cismon(init_state, 2, -0.1, time_dependent=False)
+a = cismon(init_state, 2, -0.1, time_dependent=True)
 a.run()
 plt.show()
