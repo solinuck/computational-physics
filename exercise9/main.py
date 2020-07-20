@@ -1,16 +1,18 @@
 import numpy as np
 from IPython import embed
 import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d.axes3d as p3
+import matplotlib.animation as animation
 
 
 class NMR:
-    def __init__(self, t, B, rT1, rT2, M0, phi=0):
+    def __init__(self, t, B, rT1, rT2, M0, phi=0, res=100):
         self.B_func = B
         self.n = t
-        self.tau = 4 / self.n
+        self.tau = 4 / res
         self.phi = phi
         self.t = np.arange(self.n)
-        self.M = np.zeros((self.n + 1, 3))
+        self.M = np.zeros((self.n, 3))
         self.M[0] = M0
 
         self.C = np.diag(np.exp((-self.tau / 2) * np.array([rT2, rT2, rT1])))
@@ -54,7 +56,7 @@ class NMR:
         ) / Omega2
 
     def run(self):
-        for i in self.t:
+        for i in self.t[:-1]:
             self.M[i + 1] = self.C @ self.B[i] @ self.C @ self.M[i]
 
 
@@ -70,13 +72,31 @@ def B_field(t, phi):
     ).T
 
 
-f = NMR(1000, B_field, 0, 1, [1, 0, 0], phi=np.pi / 4)
+steps = 100
+T1 = 0
+T2 = 1
+M = [1, 0, 0]
+phi = np.pi / 4
+f = NMR(steps, B_field, T1, T2, M, phi=phi)
 f.run()
 
-plt.grid()
 
-plt.plot(f.M[:, 0], label=r"$M^x$")
-plt.plot(f.M[:, 1], label=r"$M^y$")
-plt.plot(f.M[:, 2], label=r"$M^z$")
-plt.legend()
-plt.show()
+# plt.grid()
+# plt.plot(f.t * f.tau, f.M[:, 0], label=r"$M^x$")
+# plt.plot(f.t * f.tau, f.M[:, 1], label=r"$M^y$")
+# plt.plot(f.t * f.tau, f.M[:, 2], label=r"$M^z$")
+# plt.xlabel("t")
+# plt.ylim(-1, 1)
+# plt.title(f"Time evolution for $1/T_1 = {T1}$, $1/T_2 = {T2}$")
+# plt.ylabel("Magnetization")
+# plt.legend()
+# plt.savefig(f"plots/M_n{steps}_{T1,T2}_M{*M,}_phi{np.round(phi, 2)}.png")
+# plt.clf()
+
+for i, m in enumerate(f.M):
+    s = 10
+    fig = plt.figure()
+    ax = fig.gca(projection="3d")
+    ax.quiver(0, 0, 0, m[0] / s, m[1] / s, m[2] / s)
+    plt.savefig(f"anim/{i}.png")
+    plt.close()

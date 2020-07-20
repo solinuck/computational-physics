@@ -1,10 +1,11 @@
 import numpy as np
 from scipy.sparse import block_diag
+from scipy.linalg import block_diag as block
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 
-class cismon:
+class transmon:
     """Actually, Quantum Mechanics forbids this"""
 
     def __init__(
@@ -14,24 +15,20 @@ class cismon:
 
         self.alpha = alpha * (2 * np.pi)
         self.omega = omega * (2 * np.pi)
-        self.time_dependent = time_dependent
 
         self.tau = tau
         self.N = int(T / tau)
         self.T = T
         self.t = tau * np.arange(self.N)
-
+        self.time_dependent = time_dependent
         self.dim = len(init_state)
 
-        n = np.sqrt(np.arange(1, self.dim))
-        # self.a = np.zeros([self.dim, self.dim])
-        # self.a[:-1, 1:] = np.diag(n)
-
-        pre_a = np.diag(n)
         self.a = np.pad(
-            pre_a, [(0, 1), (1, 0)], mode="constant", constant_values=0
+            np.diag(np.sqrt(np.arange(1, self.dim))),
+            [(0, 1), (1, 0)],
+            mode="constant",
+            constant_values=0,
         )
-        # H_drive = (a.T + a)*Pulse(t)
         N_op = self.a.T @ self.a
         H_trans = self.omega * N_op + alpha / 2 * N_op @ (
             N_op - np.eye(self.dim)
@@ -81,30 +78,68 @@ class cismon:
                 / 2
                 * self.Pulse(t)
             )
-            expK1_2 = block_diag(
-                [
+
+            tup = tuple(
+                (
                     np.array(
                         [
                             [np.cos(oddlist[i]), 1j * np.sin(oddlist[i])],
                             [1j * np.sin(oddlist[i]), np.cos(oddlist[i])],
                         ]
                     )
-                    for i in range(int((self.dim) / 2))
-                ],
+                )
+                for i in range(int((self.dim) / 2))
             )
-            expK2_2 = block_diag(
-                [1]
-                + [
-                    np.array(
-                        [
-                            [np.cos(evenlist[i]), 1j * np.sin(evenlist[i])],
-                            [1j * np.sin(evenlist[i]), np.cos(evenlist[i])],
-                        ]
+
+            # expK1_2 = block_diag(
+            #     [
+            #         np.array(
+            #             [
+            #                 [np.cos(oddlist[i]), 1j * np.sin(oddlist[i])],
+            #                 [1j * np.sin(oddlist[i]), np.cos(oddlist[i])],
+            #             ]
+            #         )
+            #         for i in range(int((self.dim) / 2))
+            #     ],
+            # )
+            expK1_2 = block(*tup)
+
+            tup = (
+                tuple([1])
+                + tuple(
+                    (
+                        np.array(
+                            [
+                                [
+                                    np.cos(evenlist[i]),
+                                    1j * np.sin(evenlist[i]),
+                                ],
+                                [
+                                    1j * np.sin(evenlist[i]),
+                                    np.cos(evenlist[i]),
+                                ],
+                            ]
+                        )
+                        for i in range(1, int((self.dim) / 2))
                     )
-                    for i in range(1, int((self.dim) / 2))
-                ]
-                + [1],
+                )
+                + tuple([1])
             )
+            expK2_2 = block(*tup)
+
+            # expK2_2 = block_diag(
+            #     [1]
+            #     + [
+            #         np.array(
+            #             [
+            #                 [np.cos(evenlist[i]), 1j * np.sin(evenlist[i])],
+            #                 [1j * np.sin(evenlist[i]), np.cos(evenlist[i])],
+            #             ]
+            #         )
+            #         for i in range(1, int((self.dim) / 2))
+            #     ]
+            #     + [1],
+            # )
             yield (expK1_2 @ expK2_2 @ self.exptrans @ expK2_2 @ expK1_2)
 
     def run(self):
@@ -130,7 +165,9 @@ class cismon:
         plt.plot(Z_vals)
 
 
-init_state = np.array([1, 1]) / np.sqrt(2)
-a = cismon(init_state, 2, -0.1, time_dependent=True)
+init_state = [1, 1]
+# init_state[0] = 1
+init_state /= np.sqrt(2)
+a = transmon(init_state, 2, -0.1, time_dependent=True)
 a.run()
 plt.show()
