@@ -23,6 +23,7 @@ class rungekutta:
         self.ts = []
 
     def acc(self, x, v, t):
+        # newtonian gravity pointing towards (0, 0)
         return -4 * (np.pi ** 2) / np.sum(x ** 2) * x / np.linalg.norm(x)
 
     def integrate(self, r_input, v_input, t, tau):
@@ -95,6 +96,8 @@ class rungekutta:
         self.trajectory = trajectory
 
     def ecc(self):
+        print(self.major())
+        print(self.minor())
         return np.sqrt(1 - (self.minor() / self.major()) ** 2)
 
     def major(self):
@@ -112,56 +115,44 @@ class rungekutta:
         j = np.argmax(
             self.trajectory[i:, 0]
         )  # find "most right" point after doing at least half a turn
-        return self.ts[i + j]
+        return 2 * self.ts[i]
 
     def plot(self):
         plt.title("Trajectory")
-        plt.xlabel("x")
-        plt.ylabel("y")
+        plt.xlabel(r"$x[\mathrm{AU}]$")
+        plt.ylabel(r"$y[\mathrm{AU}]$")
         plt.xlim(-0.5, 1.5)
         plt.ylim(-0.5, 0.5)
 
         plt.scatter(self.trajectory[:, 0], self.trajectory[:, 1], marker=".")
         plt.scatter(0, 0, marker="x")
+        plt.grid()
 
-        # for i, txt in enumerate(self.ts):
-        #     plt.annotate(txt, (self.trajectory[i, 0], self.trajectory[i, 1]))
         plt.show()
         plt.close()
 
 
-T = []
-a = []
-
+### Task 1 + 2
 pos0 = np.array([1, 0])
 vel0 = np.array([0, np.pi / 2])
 
 simulator = rungekutta(pos0, vel0)
 simulator.simulate(50)
 simulator.plot()
-T.append(simulator.T())
-a.append(simulator.major())
+print(simulator.ecc())
+from IPython import embed
 
-vel0 = np.array([0, np.pi])
+embed()
 
-simulator = rungekutta(pos0, vel0)
-simulator.simulate(50)
-simulator.plot()
-T.append(simulator.T())
-a.append(simulator.major())
-
-vel0 = np.array([0, (3 / 4) * np.pi])
-
-simulator = rungekutta(pos0, vel0)
-simulator.simulate(50)
-simulator.plot()
-T.append(simulator.T())
-a.append(simulator.major())
-
-for i in tqdm(range(10)):
-    vel0 = np.array([0, np.pi / 2 + i * np.pi / 20])
-
-    simulator = rungekutta(pos0, vel0)
+### Task 3
+T = []
+a = []
+for i in range(3):
+    vel0 = np.array([0, np.pi / 2 + i * np.pi / 4])
+    print(np.pi / 2 + i * np.pi / 4)
+    simulator = rungekutta(
+        pos0, vel0
+    )  # init new simulation with different initial velocity
     simulator.simulate(50)
     T.append(simulator.T())
     a.append(simulator.major())
@@ -169,13 +160,16 @@ for i in tqdm(range(10)):
 T = np.array(T)
 print(T)
 a = np.array(a)
+print(a)
 plt.scatter(T ** 2, a ** 3, label="Simulation")
 plt.plot(
     [0.9 * np.min(T) ** 2, 1.1 * np.max(T) ** 2],
     [0.9 * np.min(T) ** 2, 1.1 * np.max(T) ** 2],
     label="Theory",
 )
+plt.title("Kepler's third law")
 plt.legend()
-plt.ylabel("$a^3$")
-plt.xlabel("$T^2$")
+plt.ylabel(r"$a^3$")
+plt.xlabel(r"$T^2$")
+plt.grid()
 plt.show()
